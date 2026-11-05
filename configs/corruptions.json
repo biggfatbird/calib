@@ -1,0 +1,12 @@
+{
+  "experiment": "corruptions",
+  "master_seed": 20260311,
+  "n_splits": 5,
+  "test_size": 0.25,
+  "n_draws": 50,
+  "gaussian_sigmas": [0.0, 0.25, 0.5, 1.0],
+  "dropout_rates": [0.1, 0.25, 0.5],
+  "models": ["logistic_regression", "random_forest", "rbf_svm"],
+  "output_dir": "results/corruptions",
+  "notes": "Baseline probability models only. Splits match the primary five. Isotropic noise uses the same stream id and seeds as the primary experiment, so those rows should match the baseline arm."
+}

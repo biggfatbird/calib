@@ -1,0 +1,44 @@
+{
+  "config": {
+    "dropout_rates": [
+      0.1,
+      0.25,
+      0.5
+    ],
+    "experiment": "corruptions",
+    "gaussian_sigmas": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "master_seed": 20260311,
+    "models": [
+      "logistic_regression",
+      "random_forest",
+      "rbf_svm"
+    ],
+    "n_draws": 50,
+    "n_splits": 5,
+    "notes": "Baseline probability models only. Splits match the primary five. Isotropic noise uses the same stream id and seeds as the primary experiment, so those rows should match the baseline arm.",
+    "output_dir": "results/corruptions",
+    "test_size": 0.25
+  },
+  "notes": {
+    "correlated_noise": "population covariance of the training fold, plus a 1e-8 relative ridge before Cholesky",
+    "dropout": "each feature dropped independently and replaced by the training-fold mean",
+    "models": "baseline probability arms only",
+    "multiplicative_noise": "X * (1 + level * Z); negative values are kept",
+    "n_failures": 0,
+    "n_rows_metrics": 14250,
+    "worst_group": "isotropic noise on the 10 features whose names start with 'worst '"
+  },
+  "package_version": "0.2.0",
+  "versions": {
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "python": "3.12.3",
+    "sklearn": "1.9.1"
+  },
+  "written_at_ist_and_utc": "2026-11-05 20:57:40 UTC+05:30 / 2026-11-05T15:27:40Z"
+}

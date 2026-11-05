@@ -1,0 +1,13 @@
+{
+  "experiment": "cross_dataset",
+  "master_seed": 20260311,
+  "n_splits": 5,
+  "test_size": 0.25,
+  "sigmas": [0.0, 0.25, 0.5, 1.0],
+  "n_draws": 50,
+  "models": ["logistic_regression", "random_forest", "rbf_svm"],
+  "calibrations": ["baseline", "sigmoid", "isotonic"],
+  "output_dir": "results/cross_dataset",
+  "compare_wdbc_to": "results/recalibration/metrics_long.csv",
+  "notes": "Pre-specified before the run. Same estimators, seed formula, and isotropic noise as configs/recalibration.json, applied to eight public numeric binary tables. Calibrators are fit on clean training rows only. Contrasts of interest: logistic isotonic minus baseline (Brier and ROC-AUC), forest sigmoid minus baseline (Brier), logistic sigmoid minus baseline (Brier), at sigma 0 and sigma 1. The dataset name is not part of the seed. WDBC rows are checked against the primary recalibration file."
+}

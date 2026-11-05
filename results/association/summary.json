@@ -1,0 +1,12 @@
+{
+  "n_datasets": 8,
+  "n_spearman_tests": 36,
+  "n_bootstrap": 4000,
+  "n_permutations": 4999,
+  "seed": 20260311,
+  "n_spearman_intervals_covering_zero": 34,
+  "n_spearman_holm_p_below_0.05": 0,
+  "draws_are_not_independent_datasets": true,
+  "spearman_family": "Spearman family: 6 existing Brier contrasts (sigmoid and isotonic minus baseline, for logistic regression, random forest, and RBF SVM) crossed with 6 characteristics. 36 two-sided permutation tests. Holm is applied inside this family only. The dataset is the unit (n=8).",
+  "split_families": "Two Holm families, adjusted separately. Cross-dataset: the 64 pre-specified Nadeau-Bengio tests (logistic isotonic Brier, logistic isotonic ROC-AUC, logistic sigmoid Brier, forest sigmoid Brier; sigma 0 and 1; eight datasets). WDBC: the 48 Brier and 10-bin ECE tests (sigmoid and isotonic minus baseline; three models; four sigmas)."
+}

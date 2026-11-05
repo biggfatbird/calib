@@ -1,0 +1,23 @@
+# Provenance of preserved files
+
+These files were **not** in the GitHub repository `biggfatbird/calib` at the time of the audit (5 November 2026, Asia/Calcutta). The remote `main` branch contained only `README.md` (`# calib`) and `.cursor/install.sh`.
+
+They were copied byte-for-byte from files uploaded into the working session. SHA-256 checksums are in `SHA256SUMS` next to this note. Do not regenerate or edit them in place. New experiments write under `results/` and `figures/` at the repository root.
+
+| Preserved path | What it is |
+|---|---|
+| `docs/AGENTS.md` | Project rules supplied with the upload |
+| `docs/CURSOR_TASKS.md` | Task list. Task 1 is marked done |
+| `docs/TASK1_RESULTS.md` | Short write-up of the 50-draw noise extension |
+| `results/results_by_split.csv` | Per-split metrics, one noise draw when sigma > 0 |
+| `results/results_summary.csv` | Mean and sample SD across the five splits of that file |
+| `results/noise_draws.csv` | 5 splits × 4 sigma values × 50 draws × 3 models = 3000 rows |
+| `results/noise_draw_summary.csv` | Draw-level mean, draw SD, 2.5/97.5 draw percentiles, split SD |
+| `results/paired_differences.csv` | Paired model differences of the five-split means, summarized across draws |
+| `results/noise_draws_env.txt` | `python 3.13.18`, `sklearn 1.9.1`, `numpy 2.5.3`, `draws 50` |
+| `figures/uploaded_noise_panel.png` | Uploaded four-panel figure. Not byte-identical to a fresh run of `original_source/make_figures_task1.py` on this machine |
+| `original_source/reproduce_study.py` | Uploaded one-draw script. Bytes of commit `636d281`. Not edited |
+| `original_source/noise_draws.py` | Uploaded 50-draw script. Bytes of commit `636d281`. Not edited |
+| `original_source/make_figures_task1.py` | Uploaded figure script. Bytes of commit `636d281`. Not edited |
+
+On 5 November 2026 at 21:20 IST those three scripts were not yet in this workspace. At 21:59 IST they were added to branch `cursor/research-integrity-3411` in commit `636d281` (`Add files via upload`), at the repository root. They were then moved, without an edit, to `original_source/`. The SHA-256 lines for that directory match the uploaded bytes. `PROTOCOL_COMPARISON.md` is the line-by-line comparison with `wdbc_calib/`. Nothing in `original_source/` was reconstructed or reformatted.
