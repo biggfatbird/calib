@@ -1,0 +1,12 @@
+{
+  "experiment": "more_splits",
+  "master_seed": 20260311,
+  "n_splits": 30,
+  "test_size": 0.25,
+  "sigmas": [0.0, 0.25, 0.5, 1.0],
+  "n_draws": 20,
+  "models": ["logistic_regression", "random_forest", "rbf_svm"],
+  "calibrations": ["baseline"],
+  "output_dir": "results/more_splits",
+  "notes": "The first five splits match configs/recalibration.json because StratifiedShuffleSplit draws them from the same seed in order. Draw count is 20, not 50, and is declared here rather than dropped after looking at the outcome."
+}

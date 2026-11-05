@@ -1,0 +1,12 @@
+{
+  "experiment": "recalibration",
+  "master_seed": 20260311,
+  "n_splits": 5,
+  "test_size": 0.25,
+  "sigmas": [0.0, 0.25, 0.5, 1.0],
+  "n_draws": 50,
+  "models": ["logistic_regression", "random_forest", "rbf_svm"],
+  "calibrations": ["baseline", "sigmoid", "isotonic"],
+  "output_dir": "results/recalibration",
+  "notes": "Primary extension. Same splits and the same noise matrix for every model and calibration arm. Threshold fixed at 0.5. Not a regeneration of preserved/."
+}

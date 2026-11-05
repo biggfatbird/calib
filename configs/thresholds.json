@@ -1,0 +1,12 @@
+{
+  "experiment": "thresholds",
+  "master_seed": 20260311,
+  "n_splits": 5,
+  "test_size": 0.25,
+  "sigmas": [0.0, 0.25, 0.5, 1.0],
+  "n_draws": 50,
+  "fn_fp_cost_ratios": [[1, 1], [5, 1], [10, 1]],
+  "models": ["logistic_regression", "random_forest", "rbf_svm"],
+  "output_dir": "results/thresholds",
+  "notes": "Thresholds are chosen from a stratified 5-fold out-of-fold prediction on the training fold only, then applied to clean and noisy test folds."
+}
