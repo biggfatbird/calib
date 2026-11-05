@@ -1,0 +1,4 @@
+python 3.13.18
+sklearn 1.9.1
+numpy 2.5.3
+draws 50
