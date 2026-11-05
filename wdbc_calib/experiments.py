@@ -378,7 +378,10 @@ def run_corruption_experiment(config: dict, output_dir: Path) -> pd.DataFrame:
         summarize_draws(frame, ["corruption", "level", "model", "model_key"]).to_csv(
             output_dir / "summary_draws.csv", index=False
         )
-    pd.DataFrame(failures).to_csv(output_dir / "failures.csv", index=False)
+    pd.DataFrame(
+        failures,
+        columns=["split", "draw", "corruption", "level", "error", "traceback"],
+    ).to_csv(output_dir / "failures.csv", index=False)
     _write_manifest(
         output_dir,
         config,

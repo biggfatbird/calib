@@ -102,12 +102,12 @@ def figure_recalibration(summary_csv: Path, output: Path) -> None:
                 ax.set_xlabel("sigma")
                 ax.set_xticks([0, 0.25, 0.5, 1.0])
     handles, labels = axes[0, 0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=3, frameon=False)
+    fig.legend(handles, labels, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.02))
     fig.suptitle(
         "Recalibration fit on clean training folds, evaluated under isotropic feature noise\n"
         "Bands: 2.5–97.5 percentile across draws of the split-average. Not a patient-level confidence interval.",
         fontsize=10,
-        y=1.02,
+        y=1.12,
     )
     fig.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -148,12 +148,12 @@ def figure_reliability(reliability_csv: Path, output: Path) -> None:
             if row == 1:
                 ax.set_xlabel("Mean predicted P(malignant)")
     handles, labels = axes[0, 0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=3, frameon=False)
+    fig.legend(handles, labels, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.02))
     fig.suptitle(
         "Reliability diagrams, 10 equal-width bins, pooled over splits and draws\n"
         "Counts are repeated predictions of overlapping test rows, not distinct patients.",
         fontsize=10,
-        y=1.03,
+        y=1.12,
     )
     fig.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,42 @@
+{
+  "config": {
+    "calibrations": [
+      "baseline",
+      "sigmoid",
+      "isotonic"
+    ],
+    "experiment": "recalibration",
+    "master_seed": 20260311,
+    "models": [
+      "logistic_regression",
+      "random_forest",
+      "rbf_svm"
+    ],
+    "n_draws": 50,
+    "n_splits": 5,
+    "notes": "Primary extension. Same splits and the same noise matrix for every model and calibration arm. Threshold fixed at 0.5. Not a regeneration of preserved/.",
+    "output_dir": "results/recalibration",
+    "sigmas": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "test_size": 0.25
+  },
+  "notes": {
+    "n_rows_metrics": 9000,
+    "noise": "Isotropic Gaussian in original feature units, sigma times training population SD. One Z shared by all models and calibrations.",
+    "positive_class": "malignant = 1",
+    "svc_probability_warning": "SVC(probability=True) raises FutureWarning in scikit-learn 1.9: the flag is deprecated and internally Platt-scales decision values. The baseline arm keeps it. Sigmoid and isotonic arms use CalibratedClassifierCV(..., ensemble=False) on an uncalibrated base.",
+    "threshold": 0.5
+  },
+  "package_version": "0.2.0",
+  "versions": {
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "python": "3.12.3",
+    "sklearn": "1.9.1"
+  },
+  "written_at_ist_and_utc": "2026-11-05 20:56:24 UTC+05:30 / 2026-11-05T15:26:24Z"
+}
