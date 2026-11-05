@@ -34,11 +34,12 @@ python -m wdbc_calib recalibration
 python -m wdbc_calib more-splits
 python -m wdbc_calib corruptions
 python -m wdbc_calib thresholds
+python -m wdbc_calib cross-dataset
 python -m wdbc_calib compare-preserved
 python -m wdbc_calib figures
 ```
 
-`make test`, `make recalibrate`, `make more-splits`, `make corruptions`, `make thresholds`, `make compare`, and `make figures` call the same commands.
+`make test`, `make recalibrate`, `make more-splits`, `make corruptions`, `make thresholds`, `make cross-dataset`, `make compare`, and `make figures` call the same commands. `cross-dataset` downloads eight public tables through scikit-learn and OpenML.
 
 Pinned versions that this environment used are in `requirements.txt`. The archived noise run reported Python 3.13.18, scikit-learn 1.9.1, and NumPy 2.5.3. This environment is not that interpreter. Each new output directory records its own versions in `manifest.json`.
 
@@ -51,8 +52,7 @@ Pinned versions that this environment used are in `requirements.txt`. The archiv
 Details, rounding, and claim ids are in `paper_v2.md` and `CLAIM_EVIDENCE_MATRIX.md`. Short version, from `results/recalibration/` (Python 3.12.3, scikit-learn 1.9.1, NumPy 2.2.6, five splits, 50 shared draws):
 
 - The original scripts do reproduce the archived numbers. The explicit protocol does not, and the reason is now the code difference in `PROTOCOL_COMPARISON.md`: split seed 2026 versus 20260311, a 200-tree forest with `min_samples_leaf=2` versus a 100-tree forest, and no post-hoc calibrator in the original. Clean logistic-regression ROC-AUC is within 0.0004 of the archive; 10-bin ECE differs by about 0.015. See `results/recalibration/comparison_vs_preserved.csv`.
-- Sigmoid recalibration of the random forest lowers Brier score at sigma = 1 in all 50 draws (paired mean about −0.023). A second sigmoid on logistic regression changes Brier score only in the third decimal. On the SVM it is nearly redundant with `SVC(probability=True)`, which is already Platt scaling.
-- Isotonic recalibration of logistic regression **worsens** Brier score and ROC-AUC at sigma = 1 in every draw.
+- On WDBC, sigmoid recalibration of the random forest lowers Brier score at sigma = 1 in all 50 draws (paired mean about −0.023), and isotonic recalibration of logistic regression raises Brier score and lowers ROC-AUC in every draw. The same protocol on eight public numeric tables does not keep those signs. Sonar reverses the logistic isotonic Brier result. Banknote and ionosphere reverse the forest sigmoid result. See `results/cross_dataset/` and `paper_v2.md` Section 7. That check is evidence against a general claim, not a finished robustness result.
 - ECE orderings change between 10-bin, 15-bin, and equal-mass binning.
 - Split-to-split standard deviations did not uniformly shrink when the holdout count went from 5 to 30.
 - Correlated and multiplicative noise reorder models relative to isotropic noise. No corruption condition failed numerically; `results/corruptions/failures.csv` has a header and no data rows.

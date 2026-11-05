@@ -1,4 +1,4 @@
-.PHONY: test recalibrate more-splits corruptions thresholds figures compare
+.PHONY: test recalibrate more-splits corruptions thresholds cross-dataset figures compare
 
 test:
 	python -m pytest -q tests
@@ -14,6 +14,9 @@ corruptions:
 
 thresholds:
 	python -m wdbc_calib thresholds
+
+cross-dataset:
+	python -m wdbc_calib cross-dataset
 
 compare:
 	python -m wdbc_calib compare-preserved

@@ -1,4 +1,4 @@
-# Calibration under synthetic feature noise on the Wisconsin Diagnostic Breast Cancer data
+# Calibration fitted on clean rows and scored under synthetic feature noise
 
 A methods note. Not a clinical validation. Not peer reviewed. Not a medical device.
 
@@ -6,9 +6,7 @@ Numbers below are rounded to four decimal places from `CLAIM_EVIDENCE_MATRIX.md`
 
 ## Abstract
 
-Three standard classifiers were fit to the scikit-learn Wisconsin Diagnostic Breast Cancer table (569 rows, malignant coded positive) and scored under shared synthetic feature noise. Logistic regression, a 100-tree random forest, and an RBF support-vector machine were compared with the same five stratified 75/25 splits and the same 50 noise draws. Two recalibrators, sigmoid and isotonic, were fit by `CalibratedClassifierCV` with `ensemble=False` on clean training folds only and then applied to noisy test folds.
-
-Discrimination on clean data is high (baseline ROC-AUC 0.9929, 0.9951, and 0.9875). Isotropic noise at one training-feature standard deviation lowers ROC-AUC into the mid-0.95s and raises Brier scores. Recalibration does not do one thing. Sigmoid recalibration of the forest lowers Brier score at sigma = 1 by about 0.023, and that sign is the same in all 50 draws; a split-level corrected t-test on five splits also separates it, but that test is one of 48 unadjusted Brier and ECE contrasts. The same sigmoid map barely changes logistic regression or the SVM. The SVM baseline is already an internal Platt scaling, and an explicit sigmoid fit leaves ROC-AUC unchanged on clean data. Isotonic recalibration of logistic regression worsens Brier score and ECE at sigma = 1 and lowers ROC-AUC in every draw. ECE orderings change with the binning rule. Correlated and multiplicative noise hurt more than isotropic noise of the same nominal scale. None of this is a statement about clinical benefit.
+Three standard classifiers were fit on clean training rows and scored under shared isotropic feature noise. On the Wisconsin Diagnostic Breast Cancer table, sigmoid recalibration lowers the random forest's Brier score at sigma = 1 by about 0.023 in every one of 50 draws, and isotonic recalibration raises logistic regression's Brier score by about 0.010 and lowers its ROC-AUC in every draw. The same protocol on eight public numeric binary tables, including that one, does not keep those signs. At sigma = 1, isotonic recalibration of logistic regression raises Brier score in every draw on four tables and lowers it in every draw on sonar (about −0.033) [R-sigma1-brier-logistic-isotonic, X45]. Sigmoid recalibration of the forest lowers Brier score in every draw on four tables and raises it in every draw on banknote (about +0.026) and ionosphere (about +0.038) [R-sigma1-brier-random-sigmoid, X39, X23]. This note does not call either WDBC pattern a general result, and it is not a publication-ready claim of a new calibration law. None of it is a statement about clinical benefit.
 
 ## 1. Introduction
 
@@ -42,7 +40,31 @@ Not shared: that preprint uses one stratified 455/114 split (42 malignant and 72
 
 Their Table IV, scenario B, raw logistic regression is Brier 0.021 and ECE 0.030 on 114 test rows. The explicit protocol's clean logistic regression is Brier 0.0235 and 10-bin ECE 0.0275, averaged over five larger holdouts [C1, C11]. The figures are in the same neighbourhood and come from different splits. They were not used as inputs.
 
-Their discussion already says that an extra sigmoid can make logistic regression and the SVM worse, and that isotonic calibration helps the forest, on clean data. That clean-data pattern is therefore not a finding this repository can call its own. The part that is not in the preprint is the question actually run here: whether a calibrator fit on clean training rows still helps after synthetic feature corruption, including the negative result that isotonic calibration of logistic regression worsens Brier score and ROC-AUC at sigma = 1 in every noise draw. A second 2026 preprint, on a demographic calibration gap using WDBC and MIMIC-IV (doi:10.64898/2026.06.17.26355900), asks a different question and is not a source for these noise results. Its text was not used beyond the abstract.
+Their discussion already says that an extra sigmoid can make logistic regression and the SVM worse, and that isotonic calibration helps the forest, on clean data. That clean-data pattern is therefore not a finding this repository can call its own. A second 2026 preprint, on a demographic calibration gap using WDBC and MIMIC-IV (doi:10.64898/2026.06.17.26355900), asks a different question and is not a source for these noise results. Its text was not used beyond the abstract.
+
+## 2.2 What is already established, what was only a WDBC pattern, and what is still open
+
+The sources in this section were opened for this assessment. They are not a systematic review.
+
+**Already established, and not claimed here.**
+
+Manokhin and Grønhaug, "When Post-Hoc Calibration Hurts," Proceedings of Machine Learning Research 329:378–381, 2026 (COPA, 2–4 September 2026), report 3,150 runs per calibrator: 21 classifiers, 30 binary TabArena-v0.1 tasks, 5-fold cross-validation. Isotonic regression has a mean relative log-loss change of +3.22% and improves log-loss in 43.7% of runs. Platt scaling improves log-loss in 49.8%. Mean AUC-ROC changes by under 1%, and mean accuracy is essentially unchanged except under Pearsonify. The same headline counts appear in their longer preprint, arXiv:2601.19944 (submitted 19 January 2026). The fetched HTML of that preprint says distributional shifts were omitted in order to keep an i.i.d. assumption. Their COPA table, as extracted from the proceedings PDF, gives isotonic regression a mean relative Brier change of −3.74% with an improvement rate of 52.5%, so log-loss and Brier do not even share a sign in that aggregate. The established statement is that post-hoc calibration can hurt on clean i.i.d. tabular data, and that the hurt is model-dependent. It is not a statement about feature noise.
+
+Ovadia and colleagues, "Can you trust your model's uncertainty? Evaluating predictive uncertainty under dataset shift" (NeurIPS 2019; arXiv:1906.02530 HTML read here), find that temperature scaling fit on an i.i.d. validation set does not stay well calibrated as image corruptions grow, and that on the Criteo click table a temperature-scaled model has worse Brier score than the uncalibrated network when categorical features are randomized. That is post-hoc calibration under shift. The models are deep networks, the calibrator is temperature scaling, and the corruptions are not the isotropic Gaussian feature noise used below.
+
+The scikit-learn 1.9.1 calibration guide, already cited, says isotonic regression overfits small samples and can change ROC-AUC by introducing ties, while a sigmoid map is strictly monotone. On the eight tables in Section 7, isotonic recalibration of logistic regression lowers clean-data ROC-AUC in every draw on seven tables and ties the eighth [R-sigma0-roc_auc-logistic-isotonic]. That is the known tie effect, measured again. It is not a noise result.
+
+Phopase's clean-data remark that an extra sigmoid need not help logistic regression or an already Platt-scaled SVM is also measured again. At sigma = 0, logistic sigmoid-minus-baseline Brier is positive on five of the eight tables and negative on three, and every one of those eight signs is unanimous across draws [R-sigma0-brier-logistic-sigmoid].
+
+**WDBC patterns that the cross-dataset run does not carry.**
+
+Two descriptions were true on WDBC and were not in the sources above: isotonic recalibration fit on clean rows raises logistic-regression Brier score at isotropic sigma = 1 in every draw, and sigmoid recalibration lowers the forest's Brier score at that same sigma in every draw. Section 7 applies the same seed, estimators, and noise generator to seven further public numeric tables. Neither description holds on all eight. Sonar reverses the logistic isotonic Brier sign. Banknote and ionosphere reverse the forest sigmoid sign.
+
+**Still required before a general claim.**
+
+A wider dataset sample than these eight convenient numeric tables. A shift that is not isotropic Gaussian noise in the original feature units. The beta and Venn–Abers calibrators that Manokhin and Grønhaug found more reliable on i.i.d. data, which this repository does not run. A pre-specified multiplicity adjustment if the 64 split-level tests are going to be read as tests rather than as a count. None of that is done here, so this file is not offered as publication-ready evidence of a new calibration rule.
+
+A preprint by Virdee (arXiv:2607.11542) was opened. It reports isotonic Brier sign changes across four conditions of one corpus and states that no external transport is claimed. The fetched page does not identify those conditions with isotropic feature noise, so its figures are not used.
 
 ## 3. What was archived, and what was run
 
@@ -101,7 +123,7 @@ Sigmoid calibration does not change forest ROC-AUC, as expected for a strictly m
 
 Sigmoid recalibration slightly worsens clean Brier score, by about 0.0006 [P6]. At sigma = 1 it improves Brier score by about 0.0024, in all 50 draws, draw interval about [−0.0033, −0.0016] [P5]. The split-level test also separates that contrast (unadjusted p ≈ 0.0025) [T6]. The change is small next to the noise-driven rise from 0.0235 to 0.0803.
 
-Isotonic recalibration goes the other way under strong noise. At sigma = 1, Brier score rises by about 0.0099, draw interval about [0.0059, 0.0142], worse in all 50 draws [P4, C9]. Ten-bin ECE moves with it (unadjusted split-level p ≈ 0.0048) [T5]. ROC-AUC falls by about 0.0277, and the draw interval for that drop stays below zero [P10, C20]. Isotonic calibration fitted on clean training rows does not preserve logistic-regression performance once features are heavily noised. That is a negative result, not a failed run.
+Isotonic recalibration goes the other way under strong noise. At sigma = 1, Brier score rises by about 0.0099, draw interval about [0.0059, 0.0142], worse in all 50 draws [P4, C9]. Ten-bin ECE moves with it (unadjusted split-level p ≈ 0.0048) [T5]. ROC-AUC falls by about 0.0277, and the draw interval for that drop stays below zero [P10, C20]. On this table, isotonic calibration fitted on clean training rows does not preserve logistic-regression Brier score or ROC-AUC once features are heavily noised. That is a negative result on WDBC, not a failed run. Section 7 asks whether the sign travels.
 
 ### 6.3 RBF SVM
 
@@ -115,7 +137,21 @@ Isotonic calibration lowers SVM 10-bin ECE at sigma = 1 by about 0.0217, with th
 
 ECE orderings are not stable [E1]. On clean logistic regression, 10-bin and 15-bin equal-width ECE rank isotonic best, while 10-bin equal-mass ECE ranks the baseline best. At sigma = 0.5 the three binning rules produce three different logistic-regression orderings. With 143 test rows, several equal-width bins are sparse. An ECE ranking on this sample is a property of the binning rule as well as of the model.
 
-## 7. Other corruption mechanisms
+## 7. The same protocol on eight tables
+
+`configs/cross_dataset.json` keeps the WDBC master seed, the five stratified 75/25 splits, the 50 draws, the sigma grid, and the three calibration arms. The dataset name is not part of the seed. WDBC rows from this run match `results/recalibration/metrics_long.csv` to a maximum absolute difference of 1.1×10⁻¹⁶ on 9,000 rows [X0b]. The other tables are Pima Indians diabetes (OpenML 37, positive = tested_positive), ionosphere (OpenML 59, positive = bad return), blood transfusion (OpenML 1464, positive = the 178 March 2007 donations), banknote authentication (OpenML 1462, positive = the 610 rows matching the UCI forged count), sonar (OpenML 40, positive = mine), QSAR biodegradation (OpenML 1494, positive = the 356 ready-biodegradable chemicals), and spambase (OpenML 44, positive = spam). All eight are numeric and have no missing values. The run has 72,000 metric rows [X0]. It finished at 22:33 IST on 5 November 2026 (17:03 UTC), on Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6.
+
+`figures/cross_dataset_brier.png` shows the pre-specified Brier contrasts. A positive value means the recalibrated arm has a higher Brier score than the baseline.
+
+At sigma = 1, logistic isotonic minus baseline Brier is worse in every draw on banknote, blood transfusion, spambase, and WDBC, better in every draw on sonar (mean difference −0.0334, draw interval about [−0.0439, −0.0244]) [X45], and not unanimous on ionosphere, Pima, and QSAR [R-sigma1-brier-logistic-isotonic]. The ROC-AUC version of that contrast is worse in every draw on five tables, including WDBC, and not unanimous on blood transfusion, Pima, and sonar [R-sigma1-roc_auc-logistic-isotonic]. The clean-data AUC drop is already unanimous on seven tables [R-sigma0-roc_auc-logistic-isotonic], so a lower AUC after isotonic regression is not, by itself, news about noise.
+
+At sigma = 1, forest sigmoid minus baseline Brier is better in every draw on blood transfusion, QSAR, sonar, and WDBC (WDBC mean −0.0229) [X07], worse in every draw on banknote (mean +0.0258) [X39] and ionosphere (mean +0.0380) [X23], and not unanimous on Pima and spambase [R-sigma1-brier-random-sigmoid].
+
+At sigma = 1, logistic sigmoid minus baseline Brier is better in every draw on seven tables and worse in every draw on banknote [R-sigma1-brier-logistic-sigmoid]. At sigma = 0 the same contrast is already worse on five tables and better on three [R-sigma0-brier-logistic-sigmoid].
+
+Of the 64 pre-specified split-level corrected t-tests (four contrasts, two sigmas, eight datasets), 27 have unadjusted two-sided p < 0.05 [R-split-tests]. With five overlapping splits those p-values are a rough screen. They are not a licence to keep the contrasts whose signs failed the draw count.
+
+## 8. Other corruption mechanisms
 
 Baseline models only. Same five splits. Fifty draws. Zero recorded numerical failures [N2]. Isotropic Brier means match the primary baseline arm exactly [N3, K8], which is a check that the shared seed stream was reused rather than a new scientific result.
 
@@ -123,47 +159,48 @@ At level 1, correlated Gaussian noise (population training covariance) raises lo
 
 These are synthetic corruptions. A lower Brier score under one of them is not a claim of robustness to clinical measurement error. `figures/corruptions_brier.png` shows the curves. Draw bands are percentiles across draws.
 
-## 8. More splits
+## 9. More splits
 
 `configs/more_splits.json` asks for 30 stratified holdouts from the same master seed, so the first five splits are the primary five, and for 20 draws rather than 50. Split-to-split standard deviations do not shrink in general. Clean logistic-regression ROC-AUC split SD is 0.0047 using the first five splits and 0.0048 using all thirty [S1, S2]. Forest Brier-score split SD at sigma = 1 goes from 0.0062 to 0.0079 [S3, S4]. Forest clean ECE split SD does fall, from 0.0164 to 0.0120 [S5, S6]. With only five splits the sample SD is itself noisy. The honest summary is that moving from 5 to 30 splits did not produce a uniform reduction, not that the variance "stabilised" at a smaller value.
 
-## 9. Thresholds and false-negative costs
+## 10. Thresholds and false-negative costs
 
 Thresholds for false-negative:false-positive costs 1:1, 5:1, and 10:1 were chosen by minimising `cost_fn * FN + cost_fp * FP` on stratified out-of-fold predictions from the training fold only, then frozen and applied to the test fold. Ties prefer the threshold closer to 0.5, then the smaller one. The test labels are not an argument of `select_cost_threshold`. The saved threshold file records that selection rule on every row.
 
 Higher false-negative cost lowers the threshold and buys sensitivity by spending specificity. At sigma = 1 and cost 10:1, SVM specificity averages 0.5324 while sensitivity averages 0.9833 [H1, H2]. Forest specificity averages 0.2949 [H3]. Logistic-regression mean cost per test row at that setting is 0.3623, with a wide draw interval about [0.2619, 0.4298] [H4], against 0.0266 on clean data at cost 1:1 [H5]. The training-chosen logistic threshold at cost 10:1 already ranges from 0.117 to 0.375 across the five training folds [H6]. Thresholds selected on this training size are unstable, and the test costs above are not utilities for a clinic.
 
-## 10. Discussion
+## 11. Discussion
 
-On this table, with these defaults, clean-training recalibration is not uniformly helpful once features are noised.
+On WDBC, with these defaults, clean-training recalibration is not uniformly helpful once features are noised. That paragraph does not survive contact with the other seven tables.
 
-- The forest, whose raw probabilities are known to shrink toward the centre, is where sigmoid recalibration reduces Brier score and 10-bin ECE under isotropic noise, including at sigma = 1, in every draw of this design. The clean-data Brier gap is small and is not separated by the split-level test.
-- Logistic regression does not need a second sigmoid on clean data. Under heavy isotropic noise the sigmoid shift is a small Brier improvement and the isotonic shift is a clear deterioration, with a loss of ROC-AUC.
-- The SVM baseline is already Platt-scaled. Explicit sigmoid recalibration is nearly the same procedure with a different internal split seed. Isotonic recalibration can lower ECE and also lower AUC.
-- Which corruption you add changes which model looks worse. That is a reason not to treat the isotropic ranking as the robustness ranking.
-- ECE binning changes orderings at this test size. Reporting one ECE and ranking models by it is not supported here.
+- The forest result that looked stable on WDBC, a sigmoid Brier improvement at sigma = 1 in every draw, reverses on banknote and ionosphere, also in every draw [X39, X23]. A known tendency of forests to shrink probabilities does not decide the sign under this noise.
+- The logistic isotonic deterioration at sigma = 1 is a WDBC fact [X05] and a sonar fact in the opposite direction [X45]. Pima and QSAR sit on the fence: the draw interval includes both signs.
+- Logistic sigmoid recalibration at sigma = 1 lowers Brier score in every draw on seven of the eight tables and raises it in every draw on banknote [R-sigma1-brier-logistic-sigmoid]. The clean-data signs were already mixed [R-sigma0-brier-logistic-sigmoid], which is the Manokhin and Grønhaug observation in miniature. The noise did not turn that into a universal improvement.
+- The SVM baseline is already Platt-scaled. A second sigmoid remains a small Brier gap on these tables, with the sign depending on the table. That is consistent with two fits of the same kind of map, not with a new robustness method.
+- Which corruption you add on WDBC changes which model looks worse. Which table you add changes which calibrator looks worse. Neither ranking is the robustness ranking.
+- ECE binning changes orderings at the WDBC test size. Reporting one ECE and ranking models by it is not supported here.
 
-Nothing in these experiments estimates harm, benefit, or net benefit for a patient. The costs in Section 9 are multipliers chosen in the config file.
+Nothing in these experiments estimates harm, benefit, or net benefit for a patient. The costs in Section 10 are multipliers chosen in the config file. The package is not publication-ready as a general result. The missing pieces are listed in Section 2.2.
 
-## 11. Threats to validity
+## 12. Threats to validity
 
-- One dataset, constructed features, no site shift.
-- Overlapping resamples and `J = 5` for the primary test. The corrected t-test is anti-conservative or conservative depending on whether the assumed correlation matches the real one (Nadeau and Bengio, 2003). With 4 degrees of freedom it is easy to over-read.
-- Forty-eight related contrasts, unadjusted.
+- The WDBC sections are one dataset. The cross-dataset section is eight public numeric tables chosen because they load from scikit-learn or OpenML without categorical encoding. That is not a random sample of tabular problems, and it is not a site shift.
+- Overlapping resamples and `J = 5`. The corrected t-test is anti-conservative or conservative depending on whether the assumed correlation matches the real one (Nadeau and Bengio, 2003). With 4 degrees of freedom it is easy to over-read. Sixty-four pre-specified cross-dataset tests were computed; 27 had unadjusted p < 0.05 [R-split-tests]. That count is not a family-wise claim.
+- Forty-eight related WDBC contrasts, unadjusted.
 - Untuned hyperparameters and one feature scaling convention.
 - Synthetic noise, including a covariance ridge and unclipped multiplicative noise.
 - The original scripts fit the scaler and the models on the training split only and use a fixed threshold of 0.5. Their noise seed is an assumption written in the script. The leakage tests in `tests/` cover `wdbc_calib/`. They were not retrofitted onto the archived functions.
 - Library versions differ from the archive stamp. The numeric tables still matched to 2.1×10⁻¹⁶ on this machine.
 
-## 12. Conclusion
+## 13. Conclusion
 
-Recalibration fitted on clean WDBC training folds does not reliably survive, or improve, probability quality under synthetic feature noise. It helps the random forest's Brier score and 10-bin ECE under isotropic noise in this design. It slightly helps logistic regression's Brier score at sigma = 1 when the map is sigmoid, and it hurts logistic regression when the map is isotonic. It is nearly redundant for an SVM that was already producing Platt probabilities, and a second sigmoid is slightly worse on Brier score across noise draws without being separated from split noise. ECE rankings depend on the bins. These are descriptive results on 569 rows.
+On WDBC alone, sigmoid recalibration lowers the forest's Brier score at sigma = 1 in every draw of this design, and isotonic recalibration raises logistic regression's Brier score and lowers its ROC-AUC in every draw. Those sentences are about 569 rows and one noise generator. The same protocol on eight public numeric tables does not keep either sign [R-sigma1-brier-logistic-isotonic, R-sigma1-brier-random-sigmoid]. Sonar reverses the logistic isotonic Brier result. Banknote and ionosphere reverse the forest sigmoid result. Logistic sigmoid-minus-baseline Brier at sigma = 1 is negative on seven tables and positive on banknote, in every draw on each of them [R-sigma1-brier-logistic-sigmoid]. That is still one counterexample, not a rule.
 
-The clean-data pattern (an extra sigmoid need not help logistic regression or an already Platt-scaled SVM; isotonic calibration can move a forest) is already stated by Phopase's 27 October 2026 preprint and, earlier, by the calibration literature cited from the scikit-learn guide. It is not claimed as original here.
+The clean-data pattern that post-hoc calibration can hurt, and that isotonic regression can move ROC-AUC, is already in Manokhin and Grønhaug (2026) and in the scikit-learn calibration guide. Temperature scaling fit on clean validation data failing under shift is already in Ovadia and colleagues (2019), for deep networks and a different corruption. This file does not add a general law on top of those results. It records that two WDBC signs do not survive a small cross-dataset check. That is evidence against treating the WDBC write-up as ready for publication as a general finding. It is not itself a finished robustness theorem: eight numeric tables, isotropic Gaussian noise, three untuned classical models, and no beta or Venn–Abers arm.
 
-Isotropic test-set noise, shared across logistic regression, a forest, and an RBF SVM, is already the experiment in `preserved/original_source/`. That part is a reproduction, reported as such in Section 3.1. It is not in the Phopase preprint. The part that is in neither document is the question this methods note actually adds: whether a calibrator fit on clean training rows still helps after that corruption, including the negative result that isotonic calibration of logistic regression worsens Brier score and ROC-AUC at sigma = 1 in every draw. A broader literature search than the sources in Section 2 was not done, so this note does not call that combination a new result in the field. It does call it a different protocol from the archived scripts and from the preprint that was read.
+No clinical use is intended.
 
-## 13. Reproducibility statement
+## 14. Reproducibility statement
 
 Commands, seeds, and the interpreter that wrote the CSVs are in `REPRODUCIBILITY.md`. Tests that recompute the archive from `preserved/original_source/` and lock the new row counts are in `tests/`. The archived CSV bytes and the uploaded figure are kept as uploaded. The numeric tables can be regenerated from the archived scripts to within 10⁻¹². No clinical use is intended.
 
@@ -175,3 +212,6 @@ Commands, seeds, and the interpreter that wrote the CSVs are in `REPRODUCIBILITY
 4. Platt JC. Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods. 1999. Cited from the scikit-learn 1.9.1 user guide, reference [4] of section 1.16. Not re-read in full for this note.
 5. Niculescu-Mizil A, Caruana R. Predicting good probabilities with supervised learning. ICML 2005. Cited from the same user-guide section, reference [3]. Not re-read in full for this note.
 6. Murphy AH. A new vector partition of the probability score. *Journal of Applied Meteorology and Climatology*. 1973;12(4):595–600. Cited from the same user-guide section, reference [1], for the Brier-score decomposition. Not re-read in full for this note.
+7. Manokhin V, Grønhaug D. When post-hoc calibration hurts: Platt scaling and isotonic regression on modern tabular models. *Proceedings of Machine Learning Research*. 2026;329:378–381. COPA 2026. https://proceedings.mlr.press/v329/manokhin26a.html. The four-page proceedings version. The i.i.d. restriction is quoted from the longer preprint below, not from this abstract.
+8. Manokhin V, Grønhaug D. Classifier calibration at scale: an empirical study of model-agnostic post-hoc methods. arXiv:2601.19944. Submitted 19 January 2026. HTML fetched 5 November 2026. States that distributional shift was omitted.
+9. Ovadia Y, Fertig E, Ren J, Nado Z, Sculley D, Nowozin S, Dillon JV, Lakshminarayanan B, Snoek J. Can you trust your model's uncertainty? Evaluating predictive uncertainty under dataset shift. NeurIPS 2019. arXiv:1906.02530 HTML fetched 5 November 2026. Deep networks and temperature scaling, not the protocol in Section 7.

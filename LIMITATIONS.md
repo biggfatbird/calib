@@ -4,7 +4,8 @@ This is a methods study on one public dataset. It is not a clinical validation a
 
 ## Data
 
-- The only cohort is the Wisconsin Diagnostic Breast Cancer table bundled with scikit-learn: 569 rows, 30 numeric features, 212 malignant and 357 benign. There is no external hospital, no assay shift, and no prospective sample.
+- The WDBC sections use one cohort: 569 rows, 30 numeric features, 212 malignant and 357 benign. There is no external hospital, no assay shift, and no prospective sample.
+- Section 7 of `paper_v2.md` repeats the isotropic-noise protocol on seven further public numeric tables. The WDBC signs do not all travel. Those seven tables are still a convenience sample of OpenML binary problems with numeric columns, not a survey of covariate shift.
 - Repeated 75/25 splits reuse the same people. A draw interval holds those splits fixed. It describes the noise generator, not a new patient population.
 - Five splits are too few for a stable test of a mean difference. The corrected resampled t-test uses 4 degrees of freedom. Thirty splits were added as a description of dispersion, not as a second confirmatory sample.
 

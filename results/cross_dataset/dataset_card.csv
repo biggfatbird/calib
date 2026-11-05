@@ -1,0 +1,9 @@
+dataset,title,source,positive_class,n_rows,n_features,n_positive,positive_rate,sha256
+wdbc,Wisconsin Diagnostic Breast Cancer,sklearn.datasets.load_breast_cancer,malignant (sklearn target == 0),569,30,212,0.37258347978910367,b8094a88331cff40122d4ad3515ef012f174681f5c20476024ea192f26ddda3c
+pima_diabetes,Pima Indians diabetes,"OpenML data_id 37, name diabetes, version 1",tested_positive,768,8,268,0.3489583333333333,d43a44b5d8a02e51ede85f1bc8cdb0fac58abee5b49bba69a87e36ca9f309385
+ionosphere,Johns Hopkins ionosphere,"OpenML data_id 59, name ionosphere, version 1",b (bad radar return),351,34,126,0.358974358974359,83a1844c406258ab174ab1d9d60be0f3ce14e56c0eeeb08d140ae053e0414895
+blood_transfusion,Blood transfusion service center,"OpenML data_id 1464, name blood-transfusion-service-center, version 1","2 (donated in March 2007; 178 rows, matching the UCI positive count)",748,4,178,0.23796791443850268,effbe0aecafb3a6bee6443c303332a12ba9a09ea8246f84836bc2bacd33a59cd
+banknote,Banknote authentication,"OpenML data_id 1462, name banknote-authentication, version 1","2 (610 rows, matching the UCI forged count)",1372,4,610,0.4446064139941691,fc9eb5b4591e0ea28eb35180715ed3bac97c61e324b9bc53446636e33c6129bd
+sonar,Sonar mines versus rocks,"OpenML data_id 40, name sonar, version 1",Mine,208,60,111,0.5336538461538461,2b40bae2e168dd9c53d5c41e7b18b0597fac269dfc95d9123322f0b758f5dd55
+qsar_biodeg,QSAR biodegradation,"OpenML data_id 1494, name qsar-biodeg, version 1","2 (ready biodegradable; 356 rows, matching Mansouri et al. 2013)",1055,41,356,0.33744075829383885,c9f1dc4aa69137f2bece1deb1386622e0138a8d9f470eb2b9538481ce4490973
+spambase,Spambase,"OpenML data_id 44, name spambase, version 1",1 (spam),4601,57,1813,0.39404477287546186,726523da8d4b6795756182957b8e147da4ac16c3bf77cfa341a63ca25adc4e1f

@@ -283,12 +283,142 @@ def build(root: Path) -> str:
         "maximum absolute difference 0 on the paired model/sigma means (checked in tests/test_generated_results.py)",
         "`results/corruptions/summary_draws.csv` and `results/recalibration/summary_draws.csv`",
     )
+    _add_cross_dataset(add, root)
     lines += [
         "",
         "Archived files under `preserved/results/` are a separate record. Claims A1–A5 are differences, not a statement that the archived study was re-run.",
         "",
+        "Claims with an X prefix are the cross-dataset protocol in `results/cross_dataset/`. "
+        "A positive Brier difference means the first-named arm has a higher Brier score. "
+        "A positive ROC-AUC difference means the first-named arm ranks better. "
+        "Draw fractions use the 1e-10 tie rule. They are not confidence intervals.",
+        "",
     ]
     return "\n".join(lines) + "\n"
+
+
+def _add_cross_dataset(add, root: Path) -> None:
+    paired_path = root / "results/cross_dataset/paired_calibration.csv"
+    if not paired_path.exists():
+        return
+    paired = pd.read_csv(paired_path)
+    card = pd.read_csv(root / "results/cross_dataset/dataset_card.csv")
+    metrics_path = root / "results/cross_dataset/metrics_long.csv"
+    add(
+        "X0",
+        "Cross-dataset metrics_long.csv row count and dataset count",
+        f"{len(pd.read_csv(metrics_path))} rows; {len(card)} datasets",
+        "`results/cross_dataset/metrics_long.csv`, `results/cross_dataset/dataset_card.csv`",
+    )
+    agreement_path = root / "results/cross_dataset/wdbc_agreement.csv"
+    if agreement_path.exists():
+        agreement = pd.read_csv(agreement_path)
+        add(
+            "X0b",
+            "Maximum absolute difference between WDBC rows of the cross-dataset run and results/recalibration/metrics_long.csv",
+            f"{float(agreement['max_abs_diff'].max()):.10g} over {int(agreement['n_rows'].iloc[0])} rows",
+            "`results/cross_dataset/wdbc_agreement.csv`",
+        )
+    contrasts = [
+        ("brier", "Logistic regression", "isotonic", "baseline"),
+        ("roc_auc", "Logistic regression", "isotonic", "baseline"),
+        ("brier", "Random forest", "sigmoid", "baseline"),
+        ("brier", "Logistic regression", "sigmoid", "baseline"),
+    ]
+    number = 0
+    for dataset in card["dataset"].tolist():
+        for sigma in (0.0, 1.0):
+            for metric, model, arm_a, arm_b in contrasts:
+                number += 1
+                hit = paired[
+                    (paired.dataset == dataset)
+                    & (paired.model == model)
+                    & (paired.arm_a == arm_a)
+                    & (paired.arm_b == arm_b)
+                    & (paired.metric == metric)
+                    & (paired.sigma.sub(sigma).abs() < 1e-9)
+                ]
+                if len(hit) != 1:
+                    raise RuntimeError(f"Missing cross-dataset row {dataset} {model} {metric} {sigma}")
+                row = hit.iloc[0]
+                add(
+                    f"X{number:02d}",
+                    f"{dataset}, {model}, {arm_a} minus {arm_b}, sigma={sigma:g}, {metric}",
+                    (
+                        f"mean_diff {row['mean_diff']:.10g}; "
+                        f"draw interval [{row['draw_lo']:.10g}, {row['draw_hi']:.10g}]; "
+                        f"fraction greater {row['frac_a_greater']:.10g}; "
+                        f"fraction smaller {row['frac_a_less']:.10g}; "
+                        f"n_draws {int(row['n_draws'])}"
+                    ),
+                    "`results/cross_dataset/paired_calibration.csv`",
+                )
+
+    def _direction(metric: str, mean_diff: float, frac_greater: float, frac_less: float) -> str:
+        # For Brier, larger is worse. For ROC-AUC, smaller is worse.
+        if metric == "brier":
+            if mean_diff > 0 and frac_greater == 1:
+                return "worse_every_draw"
+            if mean_diff < 0 and frac_less == 1:
+                return "better_every_draw"
+        if metric == "roc_auc":
+            if mean_diff < 0 and frac_less == 1:
+                return "worse_every_draw"
+            if mean_diff > 0 and frac_greater == 1:
+                return "better_every_draw"
+        return "not_unanimous"
+
+    for sigma, label in ((0.0, "sigma0"), (1.0, "sigma1")):
+        for metric, model, arm_a, arm_b in contrasts:
+            part = paired[
+                (paired.model == model)
+                & (paired.arm_a == arm_a)
+                & (paired.arm_b == arm_b)
+                & (paired.metric == metric)
+                & (paired.sigma.sub(sigma).abs() < 1e-9)
+            ]
+            tagged = part.copy()
+            tagged["direction"] = [
+                _direction(metric, float(a), float(b), float(c))
+                for a, b, c in zip(tagged.mean_diff, tagged.frac_a_greater, tagged.frac_a_less)
+            ]
+            worse = sorted(tagged.loc[tagged.direction == "worse_every_draw", "dataset"].tolist())
+            better = sorted(tagged.loc[tagged.direction == "better_every_draw", "dataset"].tolist())
+            other = sorted(tagged.loc[~tagged.direction.isin(["worse_every_draw", "better_every_draw"]), "dataset"].tolist())
+            add(
+                f"R-{label}-{metric}-{model.split()[0].lower()}-{arm_a}",
+                (
+                    f"Datasets where {model} {arm_a} minus {arm_b} {metric} at sigma={sigma:g} "
+                    "is worse in every draw, better in every draw, or not unanimous"
+                ),
+                f"worse every draw: {', '.join(worse) or 'none'}; better every draw: {', '.join(better) or 'none'}; not unanimous: {', '.join(other) or 'none'}",
+                "`results/cross_dataset/paired_calibration.csv`",
+            )
+    tests = pd.read_csv(root / "results/cross_dataset/split_level_tests.csv")
+    pieces = []
+    for metric, model, arm_a in (
+        ("brier", "Logistic regression", "isotonic"),
+        ("roc_auc", "Logistic regression", "isotonic"),
+        ("brier", "Random forest", "sigmoid"),
+        ("brier", "Logistic regression", "sigmoid"),
+    ):
+        pieces.append(
+            tests[
+                (tests.metric == metric)
+                & (tests.model == model)
+                & (tests.arm_a == arm_a)
+                & (tests.arm_b == "baseline")
+                & (tests.sigma.isin([0.0, 1.0]))
+            ]
+        )
+    family = pd.concat(pieces, ignore_index=True)
+    n_sig = int((family["two_sided_p"] < 0.05).sum())
+    add(
+        "R-split-tests",
+        "Unadjusted Nadeau-Bengio tests with p < 0.05 among the pre-specified cross-dataset contrasts (logistic isotonic Brier and ROC-AUC, logistic sigmoid Brier, forest sigmoid Brier; sigma 0 and 1; eight datasets)",
+        f"{n_sig} of {len(family)}",
+        "`results/cross_dataset/split_level_tests.csv`",
+    )
 
 
 def main() -> None:

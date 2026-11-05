@@ -8,6 +8,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 COLORS = {
@@ -220,6 +221,57 @@ def figure_thresholds(summary_csv: Path, output: Path) -> None:
     plt.close(fig)
 
 
+def figure_cross_dataset(paired_csv: Path, output: Path) -> None:
+    """Pre-specified Brier contrasts. Intervals are draw percentiles, not confidence intervals."""
+    paired = pd.read_csv(paired_csv)
+    contrasts = [
+        ("Logistic regression", "isotonic", "baseline", "LR isotonic − baseline"),
+        ("Random forest", "sigmoid", "baseline", "RF sigmoid − baseline"),
+        ("Logistic regression", "sigmoid", "baseline", "LR sigmoid − baseline"),
+    ]
+    _style()
+    fig, axes = plt.subplots(1, 2, figsize=(10.2, 4.4), sharey=True)
+    for ax, sigma in zip(axes, (0.0, 1.0)):
+        part = paired[(paired.metric == "brier") & (paired.sigma.sub(sigma).abs() < 1e-9)]
+        datasets = list(dict.fromkeys(part.dataset.tolist()))
+        y_pos = np.arange(len(datasets))
+        for offset, (model, arm_a, arm_b, label) in zip((-0.2, 0.0, 0.2), contrasts):
+            rows = []
+            for dataset in datasets:
+                hit = part[
+                    (part.dataset == dataset)
+                    & (part.model == model)
+                    & (part.arm_a == arm_a)
+                    & (part.arm_b == arm_b)
+                ]
+                rows.append(hit.iloc[0] if len(hit) else None)
+            means = [np.nan if row is None else row["mean_diff"] for row in rows]
+            lo = [np.nan if row is None else row["draw_lo"] for row in rows]
+            hi = [np.nan if row is None else row["draw_hi"] for row in rows]
+            ax.errorbar(
+                means,
+                y_pos + offset,
+                xerr=[np.array(means) - np.array(lo), np.array(hi) - np.array(means)],
+                fmt="o",
+                label=label,
+                markersize=4,
+                capsize=2,
+            )
+        ax.axvline(0, color="0.4", lw=0.8)
+        ax.set_yticks(y_pos, datasets)
+        ax.set_xlabel("Brier difference")
+        ax.set_title(f"sigma = {sigma:g}")
+    axes[0].legend(frameon=False, fontsize=8, loc="best")
+    fig.suptitle(
+        "Clean-training calibrators under shared isotropic noise. Bars are 2.5–97.5 percent draw percentiles.",
+        fontsize=10,
+    )
+    fig.tight_layout()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output)
+    plt.close(fig)
+
+
 def render_all(root: Path) -> list[Path]:
     root = Path(root)
     written: list[Path] = []
@@ -245,5 +297,10 @@ def render_all(root: Path) -> list[Path]:
     if thresholds.exists():
         dest = root / "figures/threshold_costs.png"
         figure_thresholds(thresholds, dest)
+        written.append(dest)
+    cross = root / "results/cross_dataset/paired_calibration.csv"
+    if cross.exists():
+        dest = root / "figures/cross_dataset_brier.png"
+        figure_cross_dataset(cross, dest)
         written.append(dest)
     return written

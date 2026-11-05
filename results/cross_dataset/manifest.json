@@ -1,0 +1,52 @@
+{
+  "config": {
+    "calibrations": [
+      "baseline",
+      "sigmoid",
+      "isotonic"
+    ],
+    "compare_wdbc_to": "results/recalibration/metrics_long.csv",
+    "experiment": "cross_dataset",
+    "master_seed": 20260311,
+    "models": [
+      "logistic_regression",
+      "random_forest",
+      "rbf_svm"
+    ],
+    "n_draws": 50,
+    "n_splits": 5,
+    "notes": "Pre-specified before the run. Same estimators, seed formula, and isotropic noise as configs/recalibration.json, applied to eight public numeric binary tables. Calibrators are fit on clean training rows only. Contrasts of interest: logistic isotonic minus baseline (Brier and ROC-AUC), forest sigmoid minus baseline (Brier), logistic sigmoid minus baseline (Brier), at sigma 0 and sigma 1. The dataset name is not part of the seed. WDBC rows are checked against the primary recalibration file.",
+    "output_dir": "results/cross_dataset",
+    "sigmas": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "test_size": 0.25
+  },
+  "notes": {
+    "datasets": [
+      "wdbc",
+      "pima_diabetes",
+      "ionosphere",
+      "blood_transfusion",
+      "banknote",
+      "sonar",
+      "qsar_biodeg",
+      "spambase"
+    ],
+    "n_rows_metrics": 72000,
+    "question": "Calibrators are fit on clean training rows only and scored under isotropic Gaussian feature noise. The pre-specified contrasts are isotonic minus baseline for logistic regression (Brier and ROC-AUC) and sigmoid minus baseline for the random forest and for logistic regression (Brier), at sigma 0 and sigma 1.",
+    "seed": "Identical to the WDBC recalibration seed. The dataset name is not an input.",
+    "wdbc_positive_class": "malignant = 1"
+  },
+  "package_version": "0.2.0",
+  "versions": {
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "python": "3.12.3",
+    "sklearn": "1.9.1"
+  },
+  "written_at_ist_and_utc": "2026-11-05 22:33:08 UTC+05:30 / 2026-11-05T17:03:08Z"
+}

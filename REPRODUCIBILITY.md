@@ -12,6 +12,7 @@ python -m wdbc_calib compare-preserved
 python -m wdbc_calib more-splits
 python -m wdbc_calib corruptions
 python -m wdbc_calib thresholds
+python -m wdbc_calib cross-dataset
 python -m wdbc_calib figures
 python -m wdbc_calib.write_claims
 ```
@@ -60,7 +61,8 @@ Run them from `preserved/original_source/` so `noise_draws.py` can import `repro
 - Archived paired differences, draw percentiles, and split SDs recompute from `preserved/results/noise_draws.csv`.
 - `tests/test_original_source.py` reruns the archived scripts and requires the archived numeric columns to agree within 10⁻¹².
 - The isotropic corruption arm matches the primary baseline Brier means exactly (same seed stream).
-- Committed result shapes: 9000 recalibration rows, 7200 more-split rows, 14250 corruption rows, 9000 threshold rows, 0 corruption failures.
+- Committed result shapes: 9000 recalibration rows, 7200 more-split rows, 14250 corruption rows, 9000 threshold rows, 0 corruption failures, 72000 cross-dataset rows.
+- WDBC rows inside `results/cross_dataset/metrics_long.csv` match `results/recalibration/metrics_long.csv` within 10⁻¹². The cross-dataset file also records that the WDBC sign pattern is not shared by all eight tables.
 
 ## SVC warning
 

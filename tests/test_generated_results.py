@@ -40,6 +40,35 @@ def test_extension_shapes_and_no_corruption_failures():
     assert set(chosen.selection) == {"out-of-fold training predictions only"}
 
 
+def test_cross_dataset_matches_wdbc_and_does_not_keep_its_signs():
+    frame = pd.read_csv(ROOT / "results/cross_dataset/metrics_long.csv")
+    assert len(frame) == 8 * 5 * 4 * 50 * 3 * 3
+    agreement = pd.read_csv(ROOT / "results/cross_dataset/wdbc_agreement.csv")
+    assert float(agreement["max_abs_diff"].max()) < 1e-12
+    paired = pd.read_csv(ROOT / "results/cross_dataset/paired_calibration.csv")
+
+    def row(dataset, model, arm, metric, sigma):
+        hit = paired[
+            (paired.dataset == dataset)
+            & (paired.model == model)
+            & (paired.arm_a == arm)
+            & (paired.arm_b == "baseline")
+            & (paired.metric == metric)
+            & (paired.sigma.sub(sigma).abs() < 1e-9)
+        ]
+        assert len(hit) == 1
+        return hit.iloc[0]
+
+    wdbc_iso = row("wdbc", "Logistic regression", "isotonic", "brier", 1.0)
+    assert wdbc_iso.mean_diff > 0 and wdbc_iso.frac_a_greater == 1
+    sonar_iso = row("sonar", "Logistic regression", "isotonic", "brier", 1.0)
+    assert sonar_iso.mean_diff < 0 and sonar_iso.frac_a_less == 1
+    bank_rf = row("banknote", "Random forest", "sigmoid", "brier", 1.0)
+    assert bank_rf.mean_diff > 0 and bank_rf.frac_a_greater == 1
+    wdbc_rf = row("wdbc", "Random forest", "sigmoid", "brier", 1.0)
+    assert wdbc_rf.mean_diff < 0 and wdbc_rf.frac_a_less == 1
+
+
 def test_forest_sigmoid_brier_direction_is_the_saved_one():
     summary = pd.read_csv(ROOT / "results/recalibration/summary_draws.csv")
     row = summary[
