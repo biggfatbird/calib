@@ -56,8 +56,9 @@ def build(root: Path) -> str:
         "Rounded displays in `paper_v2.md` use four decimal places for scores and probabilities "
         "and must match these full-precision rows. Draw intervals are 2.5 and 97.5 percent "
         "linear quantiles across noise draws of the five-split mean. They are not bootstrap "
-        "confidence intervals. Split-level p-values are unadjusted Nadeau–Bengio corrected "
-        "resampled t-tests on five overlapping splits (df = 4) after averaging draws.",
+        "confidence intervals. Split-level p-values in the T and X rows are unadjusted Nadeau–Bengio corrected "
+        "resampled t-tests on five overlapping splits (df = 4) after averaging draws. "
+        "Rows with an M prefix are the later Holm adjustment and the eight-dataset Spearman analysis in `results/association/`. They do not replace the unadjusted rows.",
         "",
         "| ID | Statement | Value | Source |",
         "|---|---|---|---|",
@@ -284,6 +285,7 @@ def build(root: Path) -> str:
         "`results/corruptions/summary_draws.csv` and `results/recalibration/summary_draws.csv`",
     )
     _add_cross_dataset(add, root)
+    _add_association(add, root)
     lines += [
         "",
         "Archived files under `preserved/results/` are a separate record. Claims A1–A5 are differences, not a statement that the archived study was re-run.",
@@ -292,6 +294,10 @@ def build(root: Path) -> str:
         "A positive Brier difference means the first-named arm has a higher Brier score. "
         "A positive ROC-AUC difference means the first-named arm ranks better. "
         "Draw fractions use the 1e-10 tie rule. They are not confidence intervals.",
+        "",
+        "Claims with an M prefix read `results/association/`. Spearman intervals resample the eight datasets. "
+        "The 50 noise draws are not the sample size. Holm is applied inside three separate families: 36 rank correlations, "
+        "64 cross-dataset split tests, and 48 WDBC Brier and ECE tests. A Holm survivor is not a prediction for a new table.",
         "",
     ]
     return "\n".join(lines) + "\n"
@@ -419,6 +425,53 @@ def _add_cross_dataset(add, root: Path) -> None:
         f"{n_sig} of {len(family)}",
         "`results/cross_dataset/split_level_tests.csv`",
     )
+
+
+def _add_association(add, root: Path) -> None:
+    spearman_path = root / "results/association/spearman.csv"
+    counts_path = root / "results/association/holm_counts.csv"
+    if not spearman_path.exists() or not counts_path.exists():
+        return
+    spearman = pd.read_csv(spearman_path)
+    counts = pd.read_csv(counts_path)
+    holm = pd.read_csv(root / "results/association/holm_split_tests.csv")
+    add(
+        "M0",
+        "Spearman tests whose dataset-bootstrap interval covers zero, and whose Holm-adjusted permutation p is below 0.05",
+        (
+            f"{int(spearman['interval_covers_zero'].sum())} of {len(spearman)} intervals cover zero; "
+            f"{int((spearman['holm_p'] < 0.05).sum())} of {len(spearman)} Holm p-values are below 0.05"
+        ),
+        "`results/association/spearman.csv`",
+    )
+    for _, row in counts.iterrows():
+        add(
+            "M-" + str(row["family"]),
+            f"Holm survivors in family {row['family']}",
+            f"{int(row['n_holm_p_below_0.05'])} of {int(row['n_tests'])} (unadjusted p < 0.05: {int(row['n_raw_p_below_0.05'])})",
+            "`results/association/holm_counts.csv`",
+        )
+    narrow = spearman[~spearman.interval_covers_zero]
+    for i, row in enumerate(narrow.itertuples(index=False), start=1):
+        add(
+            f"M-rho-{i}",
+            f"Spearman rho, {row.model} {row.arm_a} minus baseline Brier at sigma 1 versus {row.characteristic}",
+            (
+                f"rho {row.spearman_rho:.10g}; dataset-bootstrap interval [{row.bootstrap_lo:.10g}, {row.bootstrap_hi:.10g}]; "
+                f"permutation p {row.permutation_p:.10g}; Holm p {row.holm_p:.10g}; "
+                f"leave-one-out rho [{row.loo_rho_min:.10g}, {row.loo_rho_max:.10g}]; n_datasets {int(row.n_datasets)}"
+            ),
+            "`results/association/spearman.csv`",
+        )
+    survivors = holm[holm.holm_p < 0.05].sort_values(["family", "holm_p"])
+    for i, row in enumerate(survivors.itertuples(index=False), start=1):
+        dataset = row.dataset if isinstance(row.dataset, str) else "wdbc"
+        add(
+            f"M-holm-{i:02d}",
+            f"Holm survivor, family {row.family}, {dataset}, {row.model}, {row.arm_a} minus baseline, sigma={float(row.sigma):g}, {row.metric}",
+            f"mean_diff {row.mean_diff:.10g}; raw p {row.two_sided_p:.10g}; Holm p {row.holm_p:.10g}",
+            "`results/association/holm_split_tests.csv`",
+        )
 
 
 def main() -> None:

@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from wdbc_calib.association import run_association_analysis
 from wdbc_calib.cross_dataset import run_cross_dataset_experiment
 from wdbc_calib.experiments import (
     compare_to_preserved,
@@ -40,6 +41,8 @@ def main() -> None:
     cross = sub.add_parser("cross-dataset")
     cross.add_argument("--config", default="configs/cross_dataset.json")
 
+    sub.add_parser("associate")
+
     sub.add_parser("figures")
 
     comp = sub.add_parser("compare-preserved")
@@ -63,6 +66,8 @@ def main() -> None:
     elif args.command == "cross-dataset":
         config = _load(args.config)
         run_cross_dataset_experiment(config, root / config["output_dir"])
+    elif args.command == "associate":
+        run_association_analysis(root)
     elif args.command == "figures":
         written = render_all(root)
         print("\n".join(str(path) for path in written))

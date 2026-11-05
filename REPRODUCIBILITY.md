@@ -13,6 +13,7 @@ python -m wdbc_calib more-splits
 python -m wdbc_calib corruptions
 python -m wdbc_calib thresholds
 python -m wdbc_calib cross-dataset
+python -m wdbc_calib associate
 python -m wdbc_calib figures
 python -m wdbc_calib.write_claims
 ```
@@ -63,6 +64,7 @@ Run them from `preserved/original_source/` so `noise_draws.py` can import `repro
 - The isotropic corruption arm matches the primary baseline Brier means exactly (same seed stream).
 - Committed result shapes: 9000 recalibration rows, 7200 more-split rows, 14250 corruption rows, 9000 threshold rows, 0 corruption failures, 72000 cross-dataset rows.
 - WDBC rows inside `results/cross_dataset/metrics_long.csv` match `results/recalibration/metrics_long.csv` within 10⁻¹². The cross-dataset file also records that the WDBC sign pattern is not shared by all eight tables.
+- `python -m wdbc_calib associate` reads those CSVs and writes `results/association/`. It does not refit models. Spearman intervals resample the 8 datasets. Holm is applied separately to the 36 rank tests, the 64 cross-dataset split tests, and the 48 WDBC Brier/ECE tests.
 
 ## SVC warning
 

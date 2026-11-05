@@ -18,6 +18,9 @@ thresholds:
 cross-dataset:
 	python -m wdbc_calib cross-dataset
 
+associate:
+	python -m wdbc_calib associate
+
 compare:
 	python -m wdbc_calib compare-preserved
 

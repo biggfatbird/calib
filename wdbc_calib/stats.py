@@ -154,3 +154,29 @@ def nadeau_bengio_split_test(
         "n_train": int(n_train),
         "n_test": int(n_test),
     }
+
+
+def holm_adjust(p_values: np.ndarray) -> np.ndarray:
+    """Holm step-down adjusted p-values, in the original order.
+
+    For ordered raw p-values p_(1) <= ... <= p_(m), the adjusted value at rank
+    i (starting at 1) is (m - i + 1) * p_(i), capped at 1, then forced to be
+    nondecreasing in the sorted order. The unit of each p-value is whatever
+    comparison produced it. This function does not change that unit.
+    """
+    p = np.asarray(p_values, dtype=float)
+    if p.ndim != 1:
+        raise ValueError("p_values must be one-dimensional.")
+    if np.any((p < 0) | (p > 1) | ~np.isfinite(p)):
+        raise ValueError("p-values must lie in [0, 1].")
+    m = int(p.size)
+    adjusted = np.empty(m, dtype=float)
+    if m == 0:
+        return adjusted
+    order = np.argsort(p, kind="mergesort")
+    running = 0.0
+    for rank, idx in enumerate(order):
+        value = min(1.0, (m - rank) * float(p[idx]))
+        running = max(running, value)
+        adjusted[idx] = running
+    return adjusted

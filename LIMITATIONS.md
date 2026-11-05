@@ -6,6 +6,9 @@ This is a methods study on one public dataset. It is not a clinical validation a
 
 - The WDBC sections use one cohort: 569 rows, 30 numeric features, 212 malignant and 357 benign. There is no external hospital, no assay shift, and no prospective sample.
 - Section 7 of `paper_v2.md` repeats the isotropic-noise protocol on seven further public numeric tables. The WDBC signs do not all travel. Those seven tables are still a convenience sample of OpenML binary problems with numeric columns, not a survey of covariate shift.
+- The association analysis has eight datasets. A Spearman correlation on eight points, and a bootstrap that resamples those same eight, cannot support a prediction rule. Thirty-four of 36 intervals cover zero, and Holm leaves 0 of 36 permutation tests. The two logistic-regression associations with feature count are hypotheses in Section 14, not a selected model.
+- Baseline ECE, baseline ROC-AUC, and the baseline's Brier increase under noise are computed from the same splits as the recalibration effect. They are co-measured descriptions. They are not causes identified by a design that assigned those characteristics.
+- Holm adjustment was applied to two families that already existed: 64 cross-dataset split-level tests (27 unadjusted p-values below 0.05, 8 after Holm) and 48 WDBC Brier and ECE tests (13 unadjusted, 5 after Holm). Adjustment does not make the surviving signs agree across tables. The 50 noise draws were not entered as extra observations in either family.
 - Repeated 75/25 splits reuse the same people. A draw interval holds those splits fixed. It describes the noise generator, not a new patient population.
 - Five splits are too few for a stable test of a mean difference. The corrected resampled t-test uses 4 degrees of freedom. Thirty splits were added as a description of dispersion, not as a second confirmatory sample.
 
