@@ -18,7 +18,7 @@ Does probability recalibration fitted only on clean training rows improve or pre
 
 The answer is allowed to be no. Deterioration and near-ties are reported with the improvements.
 
-This file is not a revision of a recovered manuscript. At the commit audited in `AUDIT.md`, this GitHub repository contained a README and an install check. Uploaded tables and a figure were archived under `preserved/`. The scripts that produced them (`reproduce_study.py`, `noise_draws.py`, `make_figures_task1.py`) were not in that checkout. They are reported to exist outside it. A second search on 5 November 2026 at 21:20 IST did not find them in the workspace, so this note still cannot say which of its choices match that code. Section 3 separates the uploaded tables from the explicit protocol that was actually run.
+This file is not a revision of a recovered manuscript. At the commit audited in `AUDIT.md`, this GitHub repository contained a README and an install check. Uploaded tables and a figure were archived under `preserved/`. The scripts that produced them were added later, in commit `636d281` (5 November 2026, 21:59 IST), and stored unchanged at `preserved/original_source/`. Section 3 separates that reproduced table from the explicit protocol that was actually run for the recalibration question. The line-by-line differences are in `PROTOCOL_COMPARISON.md`.
 
 ## 2. Related work that was checked
 
@@ -50,7 +50,11 @@ Their discussion already says that an extra sigmoid can make logistic regression
 
 `preserved/results/` holds a five-split, three-model noise study: one draw in `results_by_split.csv`, and 50 draws in `noise_draws.csv`. `TASK1_RESULTS.md` in that archive treats the 2.5–97.5 percentile across draws as noise-seed uncertainty and says several single-draw model orderings at sigma = 1 sit inside that uncertainty. Those percentiles were recomputed from the CSV (`tests/test_preserved_csvs.py`). They are not bootstrap confidence intervals, despite one sentence in the archived task list that calls them that.
 
-The explicit protocol does not match that uploaded table. On clean data, logistic-regression ROC-AUC differs by −0.0003 [A1], Brier score by −0.0023 [A2], 10-bin ECE by −0.0152 [A3], and sensitivity by +0.0189 [A4], which is one malignant case in 53. At sigma = 1 the SVM's 10-bin ECE differs by +0.0115 [A5]. Those deltas are differences between two numerical records. They are not yet a list of code differences. The split seed, scaler, SVM probability seed, and ECE bin edges of the uploaded table remain unchecked because `reproduce_study.py` and `noise_draws.py` were not readable in this workspace on 5 November 2026. The archive is left untouched. Nothing under `results/` is labelled a direct reproduction of that unseen code.
+On 5 November 2026 at 22:04 IST `reproduce_study.py` and `noise_draws.py` were run from `preserved/original_source/` on Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6. Every numeric column in the five archived result CSVs matches that run. The largest absolute difference is 2.1×10⁻¹⁶. The archived environment stamp still says Python 3.13.18 and NumPy 2.5.3, and the CSV text is not byte-identical. The files under `preserved/` were not replaced. `results/original_source_check/numeric_agreement.csv` records the comparison. Those preserved tables are a direct reproduction of the original scripts.
+
+They are not a direct reproduction of `wdbc_calib/`. The original split seed is 2026. The forest has 200 trees and `min_samples_leaf=2`. There is no sigmoid or isotonic arm after the base model. The one-draw noise seed is `default_rng([2026, split, int(sigma * 100)])`, and the 50-draw seed is `default_rng([2026, split, draw, int(round(sigma * 100))])`. The module docstring calls those seeds assumptions. The one-draw file is therefore not draw 0 of the 50-draw file.
+
+The explicit protocol uses split seed 20260311, a 100-tree forest with the default leaf size, and `CalibratedClassifierCV(..., ensemble=False)` for sigmoid and isotonic maps. On clean data, its logistic-regression ROC-AUC differs from the archive by −0.0003 [A1], Brier score by −0.0023 [A2], 10-bin ECE by −0.0152 [A3], and sensitivity by +0.0189 [A4], which is one malignant case in 53. At sigma = 1 the SVM's 10-bin ECE differs by +0.0115 [A5]. Those deltas are the two protocols, not a failed rerun of the original script. The 10-bin ECE formulas agree on probabilities in [0, 1], so the ECE gap is not a bin-edge artifact. Nothing under `results/recalibration/`, `results/corruptions/`, `results/thresholds/`, or `results/more_splits/` is labelled a direct reproduction of `reproduce_study.py`.
 
 ### 3.2 Explicit protocol
 
@@ -148,18 +152,20 @@ Nothing in these experiments estimates harm, benefit, or net benefit for a patie
 - Forty-eight related contrasts, unadjusted.
 - Untuned hyperparameters and one feature scaling convention.
 - Synthetic noise, including a covariance ridge and unclipped multiplicative noise.
-- The archived study could not be audited for leakage because its code is missing. The new code's leakage checks do not retroactively clear the archive.
-- Library versions differ from the archive stamp.
+- The original scripts fit the scaler and the models on the training split only and use a fixed threshold of 0.5. Their noise seed is an assumption written in the script. The leakage tests in `tests/` cover `wdbc_calib/`. They were not retrofitted onto the archived functions.
+- Library versions differ from the archive stamp. The numeric tables still matched to 2.1×10⁻¹⁶ on this machine.
 
 ## 12. Conclusion
 
 Recalibration fitted on clean WDBC training folds does not reliably survive, or improve, probability quality under synthetic feature noise. It helps the random forest's Brier score and 10-bin ECE under isotropic noise in this design. It slightly helps logistic regression's Brier score at sigma = 1 when the map is sigmoid, and it hurts logistic regression when the map is isotonic. It is nearly redundant for an SVM that was already producing Platt probabilities, and a second sigmoid is slightly worse on Brier score across noise draws without being separated from split noise. ECE rankings depend on the bins. These are descriptive results on 569 rows.
 
-The clean-data pattern (an extra sigmoid need not help logistic regression or an already Platt-scaled SVM; isotonic calibration can move a forest) is already stated by Phopase's 27 October 2026 preprint and, earlier, by the calibration literature cited from the scikit-learn guide. It is not claimed as original here. The noise-corruption question is not in that preprint. Whether it is also already in the unexamined `reproduce_study.py` is unknown until that file is in the workspace.
+The clean-data pattern (an extra sigmoid need not help logistic regression or an already Platt-scaled SVM; isotonic calibration can move a forest) is already stated by Phopase's 27 October 2026 preprint and, earlier, by the calibration literature cited from the scikit-learn guide. It is not claimed as original here.
+
+Isotropic test-set noise, shared across logistic regression, a forest, and an RBF SVM, is already the experiment in `preserved/original_source/`. That part is a reproduction, reported as such in Section 3.1. It is not in the Phopase preprint. The part that is in neither document is the question this methods note actually adds: whether a calibrator fit on clean training rows still helps after that corruption, including the negative result that isotonic calibration of logistic regression worsens Brier score and ROC-AUC at sigma = 1 in every draw. A broader literature search than the sources in Section 2 was not done, so this note does not call that combination a new result in the field. It does call it a different protocol from the archived scripts and from the preprint that was read.
 
 ## 13. Reproducibility statement
 
-Commands, seeds, and the interpreter that wrote the CSVs are in `REPRODUCIBILITY.md`. Tests that recompute the archive and lock the new row counts are in `tests/`. The archive itself cannot be regenerated from this repository. No clinical use is intended.
+Commands, seeds, and the interpreter that wrote the CSVs are in `REPRODUCIBILITY.md`. Tests that recompute the archive from `preserved/original_source/` and lock the new row counts are in `tests/`. The archived CSV bytes and the uploaded figure are kept as uploaded. The numeric tables can be regenerated from the archived scripts to within 10⁻¹². No clinical use is intended.
 
 ## References
 

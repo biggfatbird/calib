@@ -1,0 +1,6 @@
+Check run 5 November 2026, 22:04 IST (16:34 UTC).
+Command: from preserved/original_source, python reproduce_study.py --out /tmp/original_rerun and python noise_draws.py --draws 50 --out /tmp/original_rerun.
+Interpreter: Python 3.12.3, scikit-learn 1.9.1, NumPy 2.2.6, pandas 2.2.3.
+Archived stamp preserved/results/noise_draws_env.txt remains Python 3.13.18, NumPy 2.5.3.
+Parsed numeric columns match within 2.1e-16. CSV text is not byte-identical. preserved/ was not modified by this run.
+sigma>0 rows of results_by_split.csv do not match any draw in noise_draws.csv (minimum absolute Brier difference about 8.9e-8). The two scripts use different noise seeds.

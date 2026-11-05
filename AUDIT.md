@@ -12,12 +12,12 @@ This audit records what was actually present. It does not reconstruct missing co
 | ID | Severity | Finding |
 |---|---|---|
 | A1 | Critical | The connected GitHub repository does not contain the research project. |
-| A2 | Critical | `reproduce_study.py`, `noise_draws.py`, and `make_figures_task1.py` were not in this checkout or the upload. Leakage and seeds in the original run still cannot be audited from code. This does not mean those files never existed outside the checkout. |
+| A2 | Resolved on 5 November 2026, 22:04 IST | The three scripts were absent at the first inspection. Commit `636d281` added them. They are archived unchanged in `preserved/original_source/`. Leakage and seeds are read from that source in the follow-up below. |
 | A3 | High | `CURSOR_TASKS.md` calls draw-wise percentiles "95% percentile bootstrap CIs". The uploaded figure and `TASK1_RESULTS.md` do not. Those percentiles are not bootstrap confidence intervals. |
-| A4 | High | Noisy single-draw results (`results_by_split.csv`, sigma > 0) use an unspecified seed. Task 1 already reports that sigma = 1 model orderings move across draws. |
+| A4 | High | The one-draw noise seed is an assumption written in `reproduce_study.py`, not a seed stated as part of an external paper. It is a different stream from the 50-draw seed. Sigma = 1 orderings still move across draws. |
 | A5 | High | Inference is from five overlapping 75/25 splits of one 569-row dataset. Draw intervals hold the splits fixed. They are not uncertainty for a new patient sample. |
-| A6 | Medium | One published paired fraction matches the CSV only after treating a 1e-16 difference as a tie. |
-| A7 | Medium | Whether preprocessing was fit on training data only, and whether SVC probabilities were the internally Platt-scaled kind, cannot be checked without source. |
+| A6 | Medium | One paired fraction is 0.08 in the CSV and 0.10 if that CSV is re-aggregated with a strict `> 0` test. The script's own full-precision comparison wrote 0.08. The extra 1e-16 appears after the values are saved. |
+| A7 | Resolved on 5 November 2026, 22:04 IST | The original scripts fit the scaler, the models, and the training-fold noise scale on the training split only. `SVC(probability=True)` is the SVM probability. Threshold 0.5 is fixed. ECE is the 10-bin function in `reproduce_study.py`. |
 | A8 | Low | The environment stamp is Python 3.13.18, scikit-learn 1.9.1, NumPy 2.5.3. This workspace is Python 3.12 with scikit-learn 1.9.1 and a different NumPy build. |
 
 ## A1 and A2 — repository contents
@@ -35,9 +35,9 @@ Local upload set (now copied to `preserved/`):
 - five result CSVs and a four-line environment stamp
 - one PNG figure
 
-Not present anywhere inspected: `reproduce_study.py`, `noise_draws.py`, a test suite, a manuscript, dependency pins, or figure-generation scripts.
+Not present at that inspection: `reproduce_study.py`, `noise_draws.py`, a test suite, a manuscript, dependency pins, or figure-generation scripts.
 
-Consequence: preserved CSVs are an archived numerical record, not a result this repository can regenerate. Later code under `wdbc_calib/` is a new, explicitly seeded protocol. Agreement or disagreement with `preserved/results/` is reported as a comparison, not as proof that the original script was recovered.
+That paragraph is the state of `main` at `ebb50c3`. It is not the state of this branch after commit `636d281`. The follow-up dated 22:04 IST is the current reading.
 
 ## Checks that did run on the preserved CSVs
 
@@ -71,25 +71,27 @@ Each test fold is about 25% of the same 569 rows, so the five test sets overlap.
 
 ## A6 — one tied paired fraction
 
-For random forest minus logistic regression, sensitivity, sigma = 0.25, `(difference > 0).mean()` over draws is 0.10 (5/50). The preserved `frac_a_greater` is 0.08 (4/50). Draw 31 has a difference of about `1.1e-16`, which is floating-point dust around a tie (sensitivity is a multiple of 1/53). Counting differences above `1e-10` as strictly greater reproduces 0.08. All other preserved paired fractions match a strict `> 0` comparison. The audit treats 0.08 as the tie-aware value and does not rewrite the CSV.
+For random forest minus logistic regression, sensitivity, sigma = 0.25, re-aggregating `noise_draws.csv` with `(difference > 0)` gives 0.10 (5/50). The stored `frac_a_greater` is 0.08 (4/50). Draw 31 is about `1.1e-16` in the CSV. Sensitivity is a multiple of 1/53, so that value is a tie that the CSV rounding disturbed.
 
-## A7 — procedures that could not be verified
+`noise_draws.paired` computes `(d > 0).mean()` on the full-precision draw differences and then writes the CSV. A fresh run of that function writes 0.08, matching the archive. The 10⁻¹⁰ tolerance used later in `wdbc_calib` is there so a reader of the CSV gets the same 0.08. The archived cell was not rewritten.
 
-Without source, the following stay unverified for the preserved numbers:
+## A7 — procedures now read from the original scripts
 
-- scaler fit on the training fold only, versus fit on all rows before splitting
-- probability column aligned with malignant = 1, versus a benign-positive score passed through a flipped metric
-- threshold fixed at 0.5 versus chosen using test labels
-- one shared noise matrix per draw versus independent noise per model
-- random_state of the split, the forest, and `SVC(probability=True)`
-- ECE bin edges (equal-width 10-bin is a common default and is consistent with the column name `ece10`, but the binning code was not recovered)
-- whether noise was added in original units using the training feature SD, and whether that SD used divisor n or n−1
+Commit `636d281` supplies the source. For the preserved numbers the scripts do the following:
 
-A partial search did **not** recover a seed. It is not claimed to be exhaustive. What was run: scikit-learn 1.9.1 logistic regression, several scalers and solvers, `train_test_split` seeds 0–399 and `StratifiedShuffleSplit` seeds in a smaller range, compared with the preserved clean-data Brier and ROC-AUC. No setting reproduced the five-split Brier vector exactly. The closest clean logistic Brier gap observed under training-only `StandardScaler` was about 2e-6, with ROC-AUC one or two rank-pairs away (1/4770 ≈ 0.00021). An interrupted search with scaling fit on all rows before splitting also did not produce an exact Brier match in the seeds it finished. The preserved numbers are therefore kept as an archive. The new protocol specifies its own seeds.
+- `StandardScaler` is inside the logistic and SVM pipelines and is fit on the training split only.
+- Malignant is `1 - sklearn_target`, which is class 1. Metrics use `predict_proba` column 1.
+- The hard-label threshold is the constant 0.5.
+- One noise matrix is drawn and then reused for all three models.
+- Split `random_state` is 2026. Forest and SVM `random_state` are 2026. The module docstring calls the noise seed and the model `random_state` assumptions, because it says the paper does not state them.
+- ECE is the 10-bin function in `reproduce_study.ece`.
+- Noise is `sigma * training population SD (ddof=0) * Z` on the test matrix only.
+
+An earlier seed search, run before this source was in the workspace, did not guess seed 2026 and did not reproduce the five-split Brier vector. That negative search is historical. The reproduction that matches is the follow-up below, which runs the script rather than searching for it.
 
 ## A8 — environment
 
-`preserved/results/noise_draws_env.txt` records Python 3.13.18, scikit-learn 1.9.1, NumPy 2.5.3. New runs record their own versions beside each output directory. Numerical disagreement across NumPy/Python builds is a reason not to expect bitwise equality even if the source were recovered.
+`preserved/results/noise_draws_env.txt` records Python 3.13.18, scikit-learn 1.9.1, NumPy 2.5.3. New runs record their own versions beside each output directory. A later rerun on Python 3.12.3 and NumPy 2.2.6 matched the parsed numbers and did not match the CSV bytes. Bitwise equality is not claimed.
 
 ## Follow-up on 5 November 2026, 21:20 IST
 
@@ -103,9 +105,26 @@ What was searched, and what was found:
 
 No line-by-line comparison was performed. No experimental CSV was regenerated. No archived or new result was reclassified as a direct reproduction of unseen source. Until those scripts are readable, every number under `results/` remains an output of `wdbc_calib/`, and every number under `preserved/results/` remains an uploaded table whose generating code was not inspected.
 
+## Follow-up on 5 November 2026, 22:04 IST
+
+Commit `636d281` added `reproduce_study.py`, `noise_draws.py`, and `make_figures_task1.py` at the repository root. Those bytes were moved to `preserved/original_source/` and the checksum file was extended. The scripts were not edited.
+
+They were executed from that directory on Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6, with output kept out of `preserved/`. Every numeric column of the five archived result CSVs matches that run to a maximum absolute difference of 2.1×10⁻¹⁶. Detail is in `results/original_source_check/numeric_agreement.csv` and `PROTOCOL_COMPARISON.md`. The CSV files are not byte-identical, and the environment stamp still records Python 3.13.18 and NumPy 2.5.3. The archived files were left in place.
+
+Classification:
+
+- `preserved/results/results_by_split.csv` and `results_summary.csv` are a direct reproduction of `reproduce_study.py`.
+- `preserved/results/noise_draws.csv`, `noise_draw_summary.csv`, and `paired_differences.csv` are a direct reproduction of `noise_draws.py`.
+- The one-draw noise seed is `default_rng([2026, split, int(sigma*100)])`. The 50-draw seed is `default_rng([2026, split, draw, int(round(sigma*100))])`. At sigma > 0 the one-draw Brier scores do not match any of the 50 draws (minimum absolute gap about 8.9×10⁻⁸).
+- `results/recalibration/`, `results/corruptions/`, `results/thresholds/`, and `results/more_splits/` are the later protocol. Split seed 20260311, a 100-tree forest with `min_samples_leaf=1`, and sigmoid/isotonic arms are not in the original scripts. Those directories are not a reproduction of the archive.
+- The uploaded figure has the same panels as `make_figures_task1.py`. Its file is 2000×480 RGBA. A fresh run of the script here is 2400×576 RGB. The PNG was not replaced.
+
+The original scripts fit on the training split only, share one noise matrix across models, and use a fixed threshold of 0.5. They do not fit a post-hoc sigmoid or isotonic calibrator. The docstring states that the noise seed and the model `random_state` are assumptions.
+
 ## What this audit does not claim
 
-- It does not claim the original scripts never existed. It claims they were not in the places inspected.
-- It does not claim the preserved study leaked labels. It claims the leak checks could not be performed on that run.
+- It does not claim the original scripts never existed. The 21:20 IST section records that they were not in the places searched then. The 22:04 IST section records that they were subsequently uploaded.
+- It does not claim the preserved study leaked labels. The uploaded scripts fit the scaler and the models on the training split only.
 - It does not claim the preserved study is clinically valid, peer reviewed, or publishable as a clinical result.
-- It does not treat `TASK1_RESULTS.md` verdicts as new findings of this repository. They are quoted as the uploaded write-up, and the underlying arithmetic was recomputed as above.
+- It does not treat `TASK1_RESULTS.md` verdicts as new findings of this repository. They are the uploaded write-up of `noise_draws.py`. The arithmetic was recomputed from the CSV, and the CSV was then regenerated from that script.
+- It does not treat `wdbc_calib/` as a line-by-line port. The differences that change the experiment are in `PROTOCOL_COMPARISON.md`.

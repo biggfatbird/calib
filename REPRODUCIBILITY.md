@@ -35,12 +35,21 @@ Recorded in `results/recalibration/manifest.json` on 5 November 2026, 20:56 IST 
 
 The full command sequence in this workspace started at 20:55:29 IST and finished at 20:58:18 IST (15:25:29Z to 15:28:18Z), including the 30-split run, the corruption grid, and the threshold run. That timing is machine-specific.
 
-The archived noise file `preserved/results/noise_draws_env.txt` says Python 3.13.18, scikit-learn 1.9.1, NumPy 2.5.3. This workspace did not use that interpreter. Do not expect bitwise equality with `preserved/`.
+The archived noise file `preserved/results/noise_draws_env.txt` says Python 3.13.18, scikit-learn 1.9.1, NumPy 2.5.3. A rerun on 5 November 2026 at 22:04 IST used Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6. Parsed numeric columns still matched to a maximum absolute difference of 2.1×10⁻¹⁶. The CSV text was not byte-identical. `preserved/` was not overwritten.
 
-## What cannot be regenerated from this repository
+## Original scripts
 
-- The original `reproduce_study.py` and `noise_draws.py` were not on GitHub and were not in the upload. `preserved/` is a byte-level archive (`preserved/SHA256SUMS`). Tests fail if those bytes change.
-- `preserved/figures/uploaded_noise_panel.png` is the uploaded figure. `figures/*.png` are new plots from the explicit protocol.
+```bash
+python preserved/original_source/reproduce_study.py --out /tmp/wdbc_original
+python preserved/original_source/noise_draws.py --draws 50 --out /tmp/wdbc_original
+```
+
+Run them from `preserved/original_source/` so `noise_draws.py` can import `reproduce_study`. Do not point `--out` at `preserved/` or at `results/`. The original seed is 2026. The `wdbc_calib` master seed is 20260311. `tests/test_original_source.py` runs this check into a temporary directory.
+
+## What stays an archive
+
+- `preserved/` is a byte-level archive (`preserved/SHA256SUMS`). Tests fail if those bytes change. Numerical agreement is not an invitation to replace the CSVs with a newly formatted write.
+- `preserved/figures/uploaded_noise_panel.png` is the uploaded figure (2000×480). A fresh run of `make_figures_task1.py` here writes 2400×576. `figures/*.png` at the repository root are plots from the explicit protocol.
 
 ## Invariants the tests lock
 
@@ -49,6 +58,7 @@ The archived noise file `preserved/results/noise_draws_env.txt` says Python 3.13
 - Sigma 0 predictions do not depend on the draw.
 - The threshold function's signature is `y_oof, p_oof, cost_fn, cost_fp`.
 - Archived paired differences, draw percentiles, and split SDs recompute from `preserved/results/noise_draws.csv`.
+- `tests/test_original_source.py` reruns the archived scripts and requires the archived numeric columns to agree within 10⁻¹².
 - The isotropic corruption arm matches the primary baseline Brier means exactly (same seed stream).
 - Committed result shapes: 9000 recalibration rows, 7200 more-split rows, 14250 corruption rows, 9000 threshold rows, 0 corruption failures.
 

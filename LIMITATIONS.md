@@ -30,7 +30,8 @@ This is a methods study on one public dataset. It is not a clinical validation a
 
 ## Reproducibility of the archived numbers
 
-- The original script was not in the GitHub repository. The explicit protocol does not recover the archived ECE or sensitivity exactly. See `AUDIT.md` and claims A1–A5. Archived tables stay in `preserved/` and are not rewritten.
+- The original scripts are now in `preserved/original_source/` and regenerate the archived numeric tables. The explicit protocol is a different seed and a different forest, so it does not recover the archived ECE or sensitivity. See `PROTOCOL_COMPARISON.md` and claims A1–A5. Archived tables stay in `preserved/` and are not rewritten.
+- The original noise seed and model `random_state` are labelled as assumptions in `reproduce_study.py`. Matching the CSV confirms the script, not an external paper's unstated seed.
 
 ## What was not run
 

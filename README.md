@@ -8,7 +8,7 @@ This repository is an educational methods study. It is **not** a clinical valida
 
 As of commit `ebb50c3` on `main`, this repository contained `README.md` and `.cursor/install.sh` only. The study code was not there. Uploaded result tables, the task notes, and one figure were copied byte-for-byte into `preserved/` and are covered by `preserved/SHA256SUMS`. See `AUDIT.md` and `preserved/PROVENANCE.md`.
 
-Those archived numbers are not regenerated. New runs use the explicit protocol in `wdbc_calib/` and write to `results/`. `reproduce_study.py`, `noise_draws.py`, and `make_figures_task1.py` were not in this checkout. They are reported to exist outside it and were still not readable here on 5 November 2026 at 21:20 IST, so no line-by-line comparison has been done. See `ORIGINALITY.md`. The comparison CSV is a difference between the uploaded table and `wdbc_calib/`, not evidence that the original script was recovered.
+Commit `636d281` (5 November 2026, 21:59 IST) added `reproduce_study.py`, `noise_draws.py`, and `make_figures_task1.py`. They are stored unchanged in `preserved/original_source/`. Running them reproduces the archived numeric tables to within 10⁻¹². See `PROTOCOL_COMPARISON.md`. New runs use the explicit protocol in `wdbc_calib/` and write to `results/`. That protocol is a different split seed, a different forest, and a recalibration experiment. `results/recalibration/comparison_vs_preserved.csv` is the numerical gap between the two. It is not a failed reproduction of the original script.
 
 ## Question for the new experiments
 
@@ -50,7 +50,7 @@ Pinned versions that this environment used are in `requirements.txt`. The archiv
 
 Details, rounding, and claim ids are in `paper_v2.md` and `CLAIM_EVIDENCE_MATRIX.md`. Short version, from `results/recalibration/` (Python 3.12.3, scikit-learn 1.9.1, NumPy 2.2.6, five splits, 50 shared draws):
 
-- The explicit protocol does **not** reproduce the archived ECE or sensitivity. Clean logistic-regression ROC-AUC is within 0.0004 of the archive; 10-bin ECE differs by about 0.015. See `results/recalibration/comparison_vs_preserved.csv`. The missing original script was not recovered.
+- The original scripts do reproduce the archived numbers. The explicit protocol does not, and the reason is now the code difference in `PROTOCOL_COMPARISON.md`: split seed 2026 versus 20260311, a 200-tree forest with `min_samples_leaf=2` versus a 100-tree forest, and no post-hoc calibrator in the original. Clean logistic-regression ROC-AUC is within 0.0004 of the archive; 10-bin ECE differs by about 0.015. See `results/recalibration/comparison_vs_preserved.csv`.
 - Sigmoid recalibration of the random forest lowers Brier score at sigma = 1 in all 50 draws (paired mean about −0.023). A second sigmoid on logistic regression changes Brier score only in the third decimal. On the SVM it is nearly redundant with `SVC(probability=True)`, which is already Platt scaling.
 - Isotonic recalibration of logistic regression **worsens** Brier score and ROC-AUC at sigma = 1 in every draw.
 - ECE orderings change between 10-bin, 15-bin, and equal-mass binning.
