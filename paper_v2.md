@@ -18,7 +18,7 @@ Does probability recalibration fitted only on clean training rows improve or pre
 
 The answer is allowed to be no. Deterioration and near-ties are reported with the improvements.
 
-This file is not a revision of a recovered manuscript. The GitHub repository, at the commit audited in `AUDIT.md`, contained a README and an install check. Uploaded tables and a figure were archived under `preserved/` because the script that produced them was not in the repository. Section 3 separates that archive from the explicit protocol that was actually run.
+This file is not a revision of a recovered manuscript. At the commit audited in `AUDIT.md`, this GitHub repository contained a README and an install check. Uploaded tables and a figure were archived under `preserved/`. The scripts that produced them (`reproduce_study.py`, `noise_draws.py`, `make_figures_task1.py`) were not in that checkout. They are reported to exist outside it. A second search on 5 November 2026 at 21:20 IST did not find them in the workspace, so this note still cannot say which of its choices match that code. Section 3 separates the uploaded tables from the explicit protocol that was actually run.
 
 ## 2. Related work that was checked
 
@@ -28,9 +28,21 @@ scikit-learn 1.9.1, User Guide section 1.16, "Probability calibration" (https://
 
 Nadeau and Bengio, "Inference for the generalization error," *Machine Learning* 52:239–281, 2003, doi:10.1023/A:1024068626366. The split-level tests below use the corrected resampled t-test variance described in that paper, `(1/J + n_test/n_train) s^2`, with `J = 5`. The paper's own simulations suggested more repeats than five. The p-values are therefore a rough check on split noise, not a confirmatory test.
 
-Phopase, "Calibration and threshold selection of machine learning classifiers for breast tumour diagnosis," Research Square preprint, 27 October 2026, doi:10.21203/rs.3.rs-11491081/v1. That preprint also uses the scikit-learn WDBC table, logistic regression, an RBF SVM, and a random forest, and it also reports that an extra sigmoid can fail to help models that are already reasonably calibrated while isotonic calibration moves the forest. Its design is different: a 455/114 split, repeated stratified cross-validation, no synthetic feature noise, and an added gradient-boosting model. It is not a replication target for the noise experiment, it is not peer reviewed, and none of its numerical results are copied into the tables here.
+Phopase, "Calibration and threshold selection of machine learning classifiers for breast tumour diagnosis," Research Square preprint, posted 27 October 2026, doi:10.21203/rs.3.rs-11491081/v1. The author is named there as Kartik Phopase (Sanjivani University). The page states that the preprint has not been peer reviewed. The full text fetched for this note is the Research Square HTML, not a journal version. Overlap with the explicit protocol in this repository, and what is not shared, is in Section 2.1. None of that preprint's table entries are copied into the results here.
 
 No claim is made that the noise-plus-recalibration design is new. A search broad enough to support a novelty claim was not done.
+
+## 2.1 Overlap with the Phopase preprint
+
+Read from the Research Square HTML for doi:10.21203/rs.3.rs-11491081/v1. This is an overlap assessment, not an attribution of copying in either direction.
+
+Shared with the explicit protocol here: the scikit-learn WDBC table (569 rows, 212 malignant); malignant coded as the positive class; logistic regression, an RBF SVM, and a random forest; standardisation inside the training fold; no hyperparameter search; the remark that `SVC` probabilities are already an internal Platt scaling; sigmoid and isotonic maps fit on training data only; Brier score and 10-bin ECE; a Nadeau–Bengio corrected resampled t-test; a threshold chosen from training out-of-fold probabilities and then frozen; and a closing statement that the work is not a clinical validation.
+
+Not shared: that preprint uses one stratified 455/114 split (42 malignant and 72 benign in the test piece; random seed 42; scikit-learn 1.8.0), then 5×10-fold cross-validation on the training piece. This repository uses repeated 75/25 holdouts (143 test rows, 53 malignant) with master seed 20260311 and scikit-learn 1.9.1. Their forest has 500 trees; the forest here has 100. They add gradient boosting, a majority-class baseline, and a 10-feature "mean only" scenario. They do not add synthetic feature noise. Their threshold is the largest score with out-of-fold sensitivity at least 0.95. The thresholds here minimise declared false-negative to false-positive cost ratios. Their test-set intervals are percentile bootstraps of one holdout. The intervals here are percentiles across noise draws, kept separate from the split-level test.
+
+Their Table IV, scenario B, raw logistic regression is Brier 0.021 and ECE 0.030 on 114 test rows. The explicit protocol's clean logistic regression is Brier 0.0235 and 10-bin ECE 0.0275, averaged over five larger holdouts [C1, C11]. The figures are in the same neighbourhood and come from different splits. They were not used as inputs.
+
+Their discussion already says that an extra sigmoid can make logistic regression and the SVM worse, and that isotonic calibration helps the forest, on clean data. That clean-data pattern is therefore not a finding this repository can call its own. The part that is not in the preprint is the question actually run here: whether a calibrator fit on clean training rows still helps after synthetic feature corruption, including the negative result that isotonic calibration of logistic regression worsens Brier score and ROC-AUC at sigma = 1 in every noise draw. A second 2026 preprint, on a demographic calibration gap using WDBC and MIMIC-IV (doi:10.64898/2026.06.17.26355900), asks a different question and is not a source for these noise results. Its text was not used beyond the abstract.
 
 ## 3. What was archived, and what was run
 
@@ -38,7 +50,7 @@ No claim is made that the noise-plus-recalibration design is new. A search broad
 
 `preserved/results/` holds a five-split, three-model noise study: one draw in `results_by_split.csv`, and 50 draws in `noise_draws.csv`. `TASK1_RESULTS.md` in that archive treats the 2.5–97.5 percentile across draws as noise-seed uncertainty and says several single-draw model orderings at sigma = 1 sit inside that uncertainty. Those percentiles were recomputed from the CSV (`tests/test_preserved_csvs.py`). They are not bootstrap confidence intervals, despite one sentence in the archived task list that calls them that.
 
-The explicit protocol does not reproduce that archive. On clean data, logistic-regression ROC-AUC differs by −0.0003 [A1], Brier score by −0.0023 [A2], 10-bin ECE by −0.0152 [A3], and sensitivity by +0.0189 [A4], which is one malignant case in 53. At sigma = 1 the SVM's 10-bin ECE differs by +0.0115 [A5]. Possible reasons, none of which can be checked without the missing script, are the split seed, the scaler, the SVM probability seed, and the ECE bin edges. The archive is left untouched.
+The explicit protocol does not match that uploaded table. On clean data, logistic-regression ROC-AUC differs by −0.0003 [A1], Brier score by −0.0023 [A2], 10-bin ECE by −0.0152 [A3], and sensitivity by +0.0189 [A4], which is one malignant case in 53. At sigma = 1 the SVM's 10-bin ECE differs by +0.0115 [A5]. Those deltas are differences between two numerical records. They are not yet a list of code differences. The split seed, scaler, SVM probability seed, and ECE bin edges of the uploaded table remain unchecked because `reproduce_study.py` and `noise_draws.py` were not readable in this workspace on 5 November 2026. The archive is left untouched. Nothing under `results/` is labelled a direct reproduction of that unseen code.
 
 ### 3.2 Explicit protocol
 
@@ -142,6 +154,8 @@ Nothing in these experiments estimates harm, benefit, or net benefit for a patie
 ## 12. Conclusion
 
 Recalibration fitted on clean WDBC training folds does not reliably survive, or improve, probability quality under synthetic feature noise. It helps the random forest's Brier score and 10-bin ECE under isotropic noise in this design. It slightly helps logistic regression's Brier score at sigma = 1 when the map is sigmoid, and it hurts logistic regression when the map is isotonic. It is nearly redundant for an SVM that was already producing Platt probabilities, and a second sigmoid is slightly worse on Brier score across noise draws without being separated from split noise. ECE rankings depend on the bins. These are descriptive results on 569 rows.
+
+The clean-data pattern (an extra sigmoid need not help logistic regression or an already Platt-scaled SVM; isotonic calibration can move a forest) is already stated by Phopase's 27 October 2026 preprint and, earlier, by the calibration literature cited from the scikit-learn guide. It is not claimed as original here. The noise-corruption question is not in that preprint. Whether it is also already in the unexamined `reproduce_study.py` is unknown until that file is in the workspace.
 
 ## 13. Reproducibility statement
 

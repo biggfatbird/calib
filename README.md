@@ -8,7 +8,7 @@ This repository is an educational methods study. It is **not** a clinical valida
 
 As of commit `ebb50c3` on `main`, this repository contained `README.md` and `.cursor/install.sh` only. The study code was not there. Uploaded result tables, the task notes, and one figure were copied byte-for-byte into `preserved/` and are covered by `preserved/SHA256SUMS`. See `AUDIT.md` and `preserved/PROVENANCE.md`.
 
-Those archived numbers are not regenerated. New runs use the explicit protocol in `wdbc_calib/` and write to `results/`. A comparison file, when produced, is a difference between the two protocols, not evidence that the missing script was recovered.
+Those archived numbers are not regenerated. New runs use the explicit protocol in `wdbc_calib/` and write to `results/`. `reproduce_study.py`, `noise_draws.py`, and `make_figures_task1.py` were not in this checkout. They are reported to exist outside it and were still not readable here on 5 November 2026 at 21:20 IST, so no line-by-line comparison has been done. See `ORIGINALITY.md`. The comparison CSV is a difference between the uploaded table and `wdbc_calib/`, not evidence that the original script was recovered.
 
 ## Question for the new experiments
 

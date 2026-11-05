@@ -12,7 +12,7 @@ This audit records what was actually present. It does not reconstruct missing co
 | ID | Severity | Finding |
 |---|---|---|
 | A1 | Critical | The connected GitHub repository does not contain the research project. |
-| A2 | Critical | Original experiment source, tests, configs, and manuscript are absent, so leakage and seed handling in the original run cannot be audited from code. |
+| A2 | Critical | `reproduce_study.py`, `noise_draws.py`, and `make_figures_task1.py` were not in this checkout or the upload. Leakage and seeds in the original run still cannot be audited from code. This does not mean those files never existed outside the checkout. |
 | A3 | High | `CURSOR_TASKS.md` calls draw-wise percentiles "95% percentile bootstrap CIs". The uploaded figure and `TASK1_RESULTS.md` do not. Those percentiles are not bootstrap confidence intervals. |
 | A4 | High | Noisy single-draw results (`results_by_split.csv`, sigma > 0) use an unspecified seed. Task 1 already reports that sigma = 1 model orderings move across draws. |
 | A5 | High | Inference is from five overlapping 75/25 splits of one 569-row dataset. Draw intervals hold the splits fixed. They are not uncertainty for a new patient sample. |
@@ -91,8 +91,21 @@ A partial search did **not** recover a seed. It is not claimed to be exhaustive.
 
 `preserved/results/noise_draws_env.txt` records Python 3.13.18, scikit-learn 1.9.1, NumPy 2.5.3. New runs record their own versions beside each output directory. Numerical disagreement across NumPy/Python builds is a reason not to expect bitwise equality even if the source were recovered.
 
+## Follow-up on 5 November 2026, 21:20 IST
+
+The study author stated that `reproduce_study.py`, `noise_draws.py`, `make_figures_task1.py`, `AGENTS.md`, `CURSOR_TASKS.md`, and `TASK1_RESULTS.md` exist outside this GitHub checkout and would be made available in the workspace.
+
+What was searched, and what was found:
+
+- Workspace, home directory, `/tmp`, `/opt`, and `/cursor`: the three Python names were not present. The markdown names exist only as the copies already under `preserved/docs/`, taken from the earlier upload.
+- `biggfatbird/calib` trees on `main` and `cursor/research-integrity-3411`: no `reproduce_study.py`.
+- Public repositories listed for `github.com/manishakanwar`: `example` and `anything` only. Neither is this study.
+
+No line-by-line comparison was performed. No experimental CSV was regenerated. No archived or new result was reclassified as a direct reproduction of unseen source. Until those scripts are readable, every number under `results/` remains an output of `wdbc_calib/`, and every number under `preserved/results/` remains an uploaded table whose generating code was not inspected.
+
 ## What this audit does not claim
 
+- It does not claim the original scripts never existed. It claims they were not in the places inspected.
 - It does not claim the preserved study leaked labels. It claims the leak checks could not be performed on that run.
 - It does not claim the preserved study is clinically valid, peer reviewed, or publishable as a clinical result.
 - It does not treat `TASK1_RESULTS.md` verdicts as new findings of this repository. They are quoted as the uploaded write-up, and the underlying arithmetic was recomputed as above.
