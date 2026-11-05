@@ -35,11 +35,13 @@ python -m wdbc_calib more-splits
 python -m wdbc_calib corruptions
 python -m wdbc_calib thresholds
 python -m wdbc_calib cross-dataset
+python -m wdbc_calib associate
 python -m wdbc_calib compare-preserved
 python -m wdbc_calib figures
+python -m wdbc_calib.write_claims
 ```
 
-`make test`, `make recalibrate`, `make more-splits`, `make corruptions`, `make thresholds`, `make cross-dataset`, `make compare`, and `make figures` call the same commands. `cross-dataset` downloads eight public tables through scikit-learn and OpenML.
+`make test`, `make recalibrate`, `make more-splits`, `make corruptions`, `make thresholds`, `make cross-dataset`, `make associate`, `make compare`, and `make figures` call the same commands. `cross-dataset` downloads eight public tables through scikit-learn and OpenML. `associate` does not refit models. It reads the saved cross-dataset and WDBC CSVs and writes `results/association/` plus `figures/brier_effect_by_dataset.png`, `figures/spearman_associations.png`, and `figures/association_scatters.png`. `figures` redraws the other plots from the saved CSVs. Neither command changes `preserved/`.
 
 Pinned versions that this environment used are in `requirements.txt`. The archived noise run reported Python 3.13.18, scikit-learn 1.9.1, and NumPy 2.5.3. This environment is not that interpreter. Each new output directory records its own versions in `manifest.json`.
 
@@ -58,7 +60,7 @@ Details, rounding, and claim ids are in `paper_v2.md` and `CLAIM_EVIDENCE_MATRIX
 - Correlated and multiplicative noise reorder models relative to isotropic noise. No corruption condition failed numerically; `results/corruptions/failures.csv` has a header and no data rows.
 - Thresholds were chosen on training out-of-fold predictions only. At a 10:1 false-negative cost they vary widely across splits, and specificity at sigma = 1 falls hard.
 
-Draw percentiles are noise-seed intervals with the splits held fixed. They are not bootstrap confidence intervals and not patient-level intervals. Thirteen of 48 unadjusted split-level Brier/ECE tests had p < 0.05. That count is exploratory.
+Draw percentiles are noise-seed intervals with the splits held fixed. They are not bootstrap confidence intervals and not patient-level intervals. Thirteen of 48 unadjusted split-level Brier/ECE tests had p < 0.05; Holm applied afterwards leaves 5. That family is exploratory. The review packet is `MANUSCRIPT_DRAFT.md`, `REVIEWER_CHECKLIST.md`, and `SUBMISSION_READINESS.md`.
 
 ## Further reading
 

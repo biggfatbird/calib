@@ -1,4 +1,4 @@
-.PHONY: test recalibrate more-splits corruptions thresholds cross-dataset figures compare
+.PHONY: test recalibrate more-splits corruptions thresholds cross-dataset associate figures compare
 
 test:
 	python -m pytest -q tests

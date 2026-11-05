@@ -1,6 +1,6 @@
 # Limitations
 
-This is a methods study on one public dataset. It is not a clinical validation and not a medical device.
+This is a methods study on eight public numeric tables, with the detailed WDBC sections using one of them. It is not a clinical validation and not a medical device.
 
 ## Data
 
@@ -28,7 +28,10 @@ This is a methods study on one public dataset. It is not a clinical validation a
 
 ## Statistics
 
-- Forty-eight Brier and ECE contrasts were computed (two calibrators, three models, four noise levels, two metrics). Thirteen had an unadjusted split-level p-value below 0.05. Those p-values are exploratory. They are not a family-wise or false-discovery claim.
+- Forty-eight Brier and ECE contrasts were computed (two calibrators, three models, four noise levels, two metrics). Thirteen had an unadjusted split-level p-value below 0.05. Holm, applied afterwards to that family, leaves 5. A separate family of 64 cross-dataset tests goes from 27 unadjusted p-values below 0.05 to 8. The adjustment was not locked before those p-values were seen. The surviving signs do not agree across tables. The 50 noise draws were not extra observations.
+- A draw-percentile interval and a dataset-bootstrap interval are different objects. The first resamples noise with the splits held fixed. The second resamples the eight datasets. Calling either one a confidence interval for a new cohort overstates it. An interval that reaches −1 on eight points is a small-sample artifact.
+- Banknote authentication and blood transfusion both have 4 features (`results/cross_dataset/dataset_card.csv`). The feature-count Spearman correlation therefore contains a tie. That correlation is already a hypothesis, not a selected predictor.
+- Smaller-class rate is not the positive-class rate. On sonar the positive class (mine) is the majority.
 - A draw-percentile interval that excludes zero means the sign was stable across noise seeds on these splits. It can coexist with a split-level test that does not separate the same contrast, because the two calculations use different units. Neither one is equivalence, and neither one is a patient-level confidence interval.
 - An interval that crosses zero is not a demonstration that two methods are equivalent.
 

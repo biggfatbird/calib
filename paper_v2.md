@@ -6,7 +6,7 @@ Numbers below are rounded to four decimal places from `CLAIM_EVIDENCE_MATRIX.md`
 
 ## Abstract
 
-Three standard classifiers were fit on clean training rows and scored under shared isotropic feature noise. On the Wisconsin Diagnostic Breast Cancer table, sigmoid recalibration lowers the random forest's Brier score at sigma = 1 by about 0.023 in every one of 50 draws, and isotonic recalibration raises logistic regression's Brier score by about 0.010 and lowers its ROC-AUC in every draw. The same protocol on eight public numeric binary tables, including that one, does not keep those signs. At sigma = 1, isotonic recalibration of logistic regression raises Brier score in every draw on four tables and lowers it in every draw on sonar (about −0.033) [R-sigma1-brier-logistic-isotonic, X45]. Sigmoid recalibration of the forest lowers Brier score in every draw on four tables and raises it in every draw on banknote (about +0.026) and ionosphere (about +0.038) [R-sigma1-brier-random-sigmoid, X39, X23]. This note does not call either WDBC pattern a general result, and it is not a publication-ready claim of a new calibration law. Dataset size, feature count, class balance, clean-data calibration, clean-data discrimination, and the baseline's Brier increase under noise were then compared with those Brier changes across the eight tables. Thirty-four of 36 dataset-bootstrap intervals cover zero, and none of the 36 rank correlations survives a Holm adjustment [M0]. None of it is a statement about clinical benefit.
+Three standard classifiers were fit on clean training rows and scored under shared isotropic feature noise. On the Wisconsin Diagnostic Breast Cancer table, sigmoid recalibration lowers the random forest's Brier score at sigma = 1 by about 0.023 in every one of 50 draws [P1], and isotonic recalibration raises logistic regression's Brier score by about 0.010 and lowers its ROC-AUC in every draw [P4, P10]. The same protocol on eight public numeric binary tables, including that one, does not keep those signs. At sigma = 1, isotonic recalibration of logistic regression raises Brier score in every draw on four tables and lowers it in every draw on sonar (about −0.033) [R-sigma1-brier-logistic-isotonic, X45]. Sigmoid recalibration of the forest lowers Brier score in every draw on four tables and raises it in every draw on banknote (about +0.026) and ionosphere (about +0.038) [R-sigma1-brier-random-sigmoid, X39, X23]. This note does not call either WDBC pattern a general result, and it is not a publication-ready claim of a new calibration law. Dataset size, feature count, class balance, clean-data calibration, clean-data discrimination, and the baseline's Brier increase under noise were then compared with those Brier changes across the eight tables. Thirty-four of 36 dataset-bootstrap intervals cover zero, and none of the 36 rank correlations survives a Holm adjustment [M0]. None of it is a statement about clinical benefit.
 
 ## 1. Introduction
 
@@ -20,7 +20,7 @@ This file is not a revision of a recovered manuscript. At the commit audited in 
 
 ## 2. Related work that was checked
 
-The following sources were opened and are the only ones cited.
+The following sources were opened and are the only ones cited. Counts in this section and in Section 2.2 are quotations from those pages. They are not rows of `results/`.
 
 scikit-learn 1.9.1, User Guide section 1.16, "Probability calibration" (https://scikit-learn.org/stable/modules/calibration.html), states that a calibrated binary classifier should have an observed frequency near 0.8 among rows scored near 0.8; that the Brier score mixes calibration and discrimination (Murphy, 1973, as cited there); that sigmoid calibration is Platt's logistic map; that isotonic calibration is more flexible and overfits more easily on small samples; that isotonic maps can change ROC-AUC by introducing ties while a sigmoid map is strictly monotone; and that random forests tend to pull probabilities away from 0 and 1. The same page cites Niculescu-Mizil and Caruana, "Predicting good probabilities with supervised learning," ICML 2005, and Platt, "Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods," 1999. Those two papers are cited here only as the documents named by that user-guide page. They were not re-read in full.
 
@@ -40,7 +40,7 @@ Not shared: that preprint uses one stratified 455/114 split (42 malignant and 72
 
 Their Table IV, scenario B, raw logistic regression is Brier 0.021 and ECE 0.030 on 114 test rows. The explicit protocol's clean logistic regression is Brier 0.0235 and 10-bin ECE 0.0275, averaged over five larger holdouts [C1, C11]. The figures are in the same neighbourhood and come from different splits. They were not used as inputs.
 
-Their discussion already says that an extra sigmoid can make logistic regression and the SVM worse, and that isotonic calibration helps the forest, on clean data. That clean-data pattern is therefore not a finding this repository can call its own. A second 2026 preprint, on a demographic calibration gap using WDBC and MIMIC-IV (doi:10.64898/2026.06.17.26355900), asks a different question and is not a source for these noise results. Its text was not used beyond the abstract.
+Their discussion already says that an extra sigmoid can make logistic regression and the SVM worse, and that isotonic calibration helps the forest, on clean data. That clean-data pattern is therefore not a finding this repository can call its own. A second 2026 preprint, on a demographic calibration gap using WDBC and MIMIC-IV (reference 11), asks a different question and is not a source for these noise results. Its text was not used beyond the abstract.
 
 ## 2.2 What is already established, what was only a WDBC pattern, and what is still open
 
@@ -64,7 +64,7 @@ Two descriptions were true on WDBC and were not in the sources above: isotonic r
 
 A wider dataset sample than these eight convenient numeric tables. A shift that is not isotropic Gaussian noise in the original feature units. The beta and Venn–Abers calibrators that Manokhin and Grønhaug found more reliable on i.i.d. data, which this repository does not run. Section 7.1 does apply Holm to the existing split-level tests and to the rank correlations. That adjustment was documented after the unadjusted counts, not locked before the cross-dataset run. The file is still not publication-ready evidence of a new calibration rule.
 
-A preprint by Virdee (arXiv:2607.11542) was opened. It reports isotonic Brier sign changes across four conditions of one corpus and states that no external transport is claimed. The fetched page does not identify those conditions with isotropic feature noise, so its figures are not used.
+Virdee (reference 10) was opened. The preprint reports isotonic Brier sign changes across four conditions of one corpus and states that no external transport is claimed. The fetched page does not identify those conditions with isotropic feature noise, so none of its figures are used.
 
 ## 3. What was archived, and what was run
 
@@ -72,7 +72,7 @@ A preprint by Virdee (arXiv:2607.11542) was opened. It reports isotonic Brier si
 
 `preserved/results/` holds a five-split, three-model noise study: one draw in `results_by_split.csv`, and 50 draws in `noise_draws.csv`. `TASK1_RESULTS.md` in that archive treats the 2.5–97.5 percentile across draws as noise-seed uncertainty and says several single-draw model orderings at sigma = 1 sit inside that uncertainty. Those percentiles were recomputed from the CSV (`tests/test_preserved_csvs.py`). They are not bootstrap confidence intervals, despite one sentence in the archived task list that calls them that.
 
-On 5 November 2026 at 22:04 IST `reproduce_study.py` and `noise_draws.py` were run from `preserved/original_source/` on Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6. Every numeric column in the five archived result CSVs matches that run. The largest absolute difference is 2.1×10⁻¹⁶. The archived environment stamp still says Python 3.13.18 and NumPy 2.5.3, and the CSV text is not byte-identical. The files under `preserved/` were not replaced. `results/original_source_check/numeric_agreement.csv` records the comparison. Those preserved tables are a direct reproduction of the original scripts.
+On 5 November 2026 at 22:04 IST `reproduce_study.py` and `noise_draws.py` were run from `preserved/original_source/` on Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6. Every numeric column in the five archived result CSVs matches that run. The largest value in column `max_abs_diff` of `results/original_source_check/numeric_agreement.csv` is 2.1×10⁻¹⁶. The archived environment stamp still says Python 3.13.18 and NumPy 2.5.3, and the CSV text is not byte-identical. The files under `preserved/` were not replaced. `results/original_source_check/numeric_agreement.csv` records the comparison. Those preserved tables are a direct reproduction of the original scripts.
 
 They are not a direct reproduction of `wdbc_calib/`. The original split seed is 2026. The forest has 200 trees and `min_samples_leaf=2`. There is no sigmoid or isotonic arm after the base model. The one-draw noise seed is `default_rng([2026, split, int(sigma * 100)])`, and the 50-draw seed is `default_rng([2026, split, draw, int(round(sigma * 100))])`. The module docstring calls those seeds assumptions. The one-draw file is therefore not draw 0 of the 50-draw file.
 
@@ -92,10 +92,11 @@ The run that wrote `results/recalibration/` used Python 3.12.3, scikit-learn 1.9
 
 ## 4. How uncertainty is reported
 
-Two sources are kept apart.
+Three interval types are named separately. "Draw interval" means the first. "Dataset-bootstrap interval" means the third. A split-level p-value is the second, and it is unadjusted unless the sentence says Holm.
 
 1. **Noise draws, splits fixed.** For each draw, average the metric over the five splits. The reported interval is the 2.5 and 97.5 percent linear quantile of those 50 numbers. At sigma = 0 the interval collapses to a point. This is not a bootstrap confidence interval and not an interval for a new cohort.
-2. **Splits, draws averaged.** Sample standard deviation of the per-split means, and, separately, a Nadeau–Bengio corrected resampled t-test on those five paired differences. With `n_test/n_train ≈ 143/426` and `J = 5`, the corrected standard error is larger than the ordinary standard error of five numbers. Overlapping splits violate the independence story the ordinary error would assume. The correction is an approximation. Forty-eight such tests were computed for Brier score and 10-bin ECE. Thirteen had unadjusted two-sided p < 0.05 [T0]. Section 7.1 applies Holm to this same family afterwards: 5 of 48 remain [M-wdbc_brier_ece_48]. The unadjusted count is left in place. A small p-value is not a clinical finding, and a large p-value is not equivalence.
+2. **Splits, draws averaged.** Sample standard deviation of the per-split means, and, separately, a Nadeau–Bengio corrected resampled t-test on those five paired differences. Every primary split has 143 test rows and 426 training rows (`results/recalibration/split_indices.csv`), and `J = 5`. The corrected standard error is larger than the ordinary standard error of five numbers. Overlapping splits violate the independence story the ordinary error would assume. The correction is an approximation. Forty-eight such tests were computed for Brier score and 10-bin ECE. Thirteen had unadjusted two-sided p < 0.05 [T0]. Section 7.1 applies Holm to this same family afterwards: 5 of 48 remain [M-wdbc_brier_ece_48]. The unadjusted count is left in place. A small p-value is not a clinical finding, and a large p-value is not equivalence.
+3. **Eight datasets, one correlation.** Spearman intervals in Section 7.1 are 2.5 and 97.5 percent percentiles from 4,000 bootstrap resamples of the eight datasets. They are not intervals across the 50 noise draws, and an endpoint at −1 or +1 is a small-sample resample, not a slope. The permutation p-values that enter Holm for that family also treat the dataset as the unit. "Draw interval" always means the first of these three objects. "Dataset-bootstrap interval" means the third. Neither phrase is a confidence interval for a new patient or a new table.
 
 Paired differences use the same split and the same noise matrix. A difference smaller than `1e-10` in absolute value is treated as a tie so that binary metrics are not ordered by floating-point dust. That rule is what makes the archived paired fractions recompute; see `AUDIT.md`.
 
@@ -117,7 +118,7 @@ On clean data the sigmoid Brier improvement is only about 0.0008 [P2], and the s
 
 Isotonic calibration also changes the 0.5 operating point. At sigma = 1, forest sensitivity rises from 0.9061 to 0.9457 [C21, C22] while specificity falls from 0.8534 to 0.7450 [C23, C24]. That is not a free improvement in detection.
 
-Sigmoid calibration does not change forest ROC-AUC, as expected for a strictly monotone map. Isotonic calibration lowers it in every draw (the paired file records fraction smaller = 1 at each sigma).
+Sigmoid calibration does not change forest ROC-AUC, as expected for a strictly monotone map. Isotonic calibration lowers it in every draw. In `results/recalibration/paired_calibration.csv`, the forest isotonic-minus-baseline ROC-AUC rows have `frac_a_less` = 1 and `frac_a_greater` = 0 at sigma 0, 0.25, 0.5, and 1.
 
 ### 6.2 Logistic regression
 
@@ -139,7 +140,7 @@ ECE orderings are not stable [E1]. On clean logistic regression, 10-bin and 15-b
 
 ## 7. The same protocol on eight tables
 
-`configs/cross_dataset.json` keeps the WDBC master seed, the five stratified 75/25 splits, the 50 draws, the sigma grid, and the three calibration arms. The dataset name is not part of the seed. WDBC rows from this run match `results/recalibration/metrics_long.csv` to a maximum absolute difference of 1.1×10⁻¹⁶ on 9,000 rows [X0b]. The other tables are Pima Indians diabetes (OpenML 37, positive = tested_positive), ionosphere (OpenML 59, positive = bad return), blood transfusion (OpenML 1464, positive = the 178 March 2007 donations), banknote authentication (OpenML 1462, positive = the 610 rows matching the UCI forged count), sonar (OpenML 40, positive = mine), QSAR biodegradation (OpenML 1494, positive = the 356 ready-biodegradable chemicals), and spambase (OpenML 44, positive = spam). All eight are numeric and have no missing values. The run has 72,000 metric rows [X0]. It finished at 22:33 IST on 5 November 2026 (17:03 UTC), on Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6.
+`configs/cross_dataset.json` keeps the WDBC master seed, the five stratified 75/25 splits, the 50 draws, the sigma grid, and the three calibration arms. The dataset name is not part of the seed. WDBC rows from this run match `results/recalibration/metrics_long.csv` to a maximum absolute difference of 1.1×10⁻¹⁶ on 9,000 rows [X0b]. The other tables are Pima Indians diabetes (OpenML 37, positive = tested_positive), ionosphere (OpenML 59, positive = bad return), blood transfusion (OpenML 1464, positive = the 178 March 2007 donations), banknote authentication (OpenML 1462, positive = the 610 rows matching the UCI forged count), sonar (OpenML 40, positive = mine), QSAR biodegradation (OpenML 1494, positive = the 356 ready-biodegradable chemicals), and spambase (OpenML 44, positive = spam). All eight are numeric and have no missing values. Row counts, feature counts, and positive-class counts in the previous sentence are the columns of `results/cross_dataset/dataset_card.csv`. The run has 72,000 metric rows [X0]. It finished at 22:33 IST on 5 November 2026 (17:03 UTC), on Python 3.12.3, scikit-learn 1.9.1, and NumPy 2.2.6.
 
 `figures/cross_dataset_brier.png` shows the pre-specified Brier contrasts. A positive value means the recalibrated arm has a higher Brier score than the baseline.
 
@@ -227,6 +228,30 @@ Until a later sample addresses these sentences, the supported conclusion is the 
 
 Commands, seeds, and the interpreter that wrote the CSVs are in `REPRODUCIBILITY.md`. Tests that recompute the archive from `preserved/original_source/` and lock the new row counts are in `tests/`. The archived CSV bytes and the uploaded figure are kept as uploaded. The numeric tables can be regenerated from the archived scripts to within 10⁻¹². No clinical use is intended.
 
+## Figure captions
+
+There is no separate results table in this note. The quantitative table is `CLAIM_EVIDENCE_MATRIX.md`. `MANUSCRIPT_DRAFT.md` reprints two short displays of claims that already appear above. Figure files are drawn from the CSVs named here. Bands and error bars are the interval type named in the caption. They are not confidence intervals.
+
+**Figure 1.** `figures/baseline_noise_bands.png`, from `results/recalibration/summary_draws.csv`. Baseline ROC-AUC, sensitivity, Brier score, and 10-bin ECE against isotropic sigma on WDBC. The line is the mean over five splits. The band is the 2.5–97.5 percent draw interval with those splits held fixed.
+
+**Figure 2.** `figures/recalibration_bands.png`, from the same summary. Baseline, sigmoid, and isotonic arms for Brier score and 10-bin ECE. Same draw-interval band.
+
+**Figure 3.** `figures/reliability_diagrams.png`, from `results/recalibration/reliability_bins.csv`. Reliability curves that pool splits and draws. Repeated test rows are not distinct patients. This figure is a display, not a sample size.
+
+**Figure 4.** `figures/cross_dataset_brier.png`, from `results/cross_dataset/paired_calibration.csv`. Pre-specified Brier differences at sigma 0 and sigma 1. A positive value means the recalibrated arm has a higher Brier score. Bars are draw percentiles within each dataset.
+
+**Figure 5.** `figures/brier_effect_by_dataset.png`, from the same paired file, sigma = 1, six contrasts. Eight datasets. Bars are draw percentiles, not the sample size of the Spearman analysis.
+
+**Figure 6.** `figures/spearman_associations.png`, from `results/association/spearman.csv`. Spearman rho for each characteristic against each of the six Brier contrasts. Bars are dataset-bootstrap intervals. An interval that covers zero is not a predictor.
+
+**Figure 7.** `figures/association_scatters.png`, from `results/association/characteristics.csv` joined to the paired Brier differences. Thirty-six panels, eight points each, no fitted line.
+
+**Figure 8.** `figures/corruptions_brier.png`, from `results/corruptions/summary_draws.csv`. Baseline Brier score under the other synthetic corruptions. Bands are draw percentiles.
+
+**Figure 9.** `figures/threshold_costs.png`, from `results/thresholds/summary_draws.csv`. Mean cost per test row after a threshold chosen on training out-of-fold predictions. Bands are draw percentiles. The costs are the multipliers in the config file.
+
+The uploaded archive figure `preserved/figures/uploaded_noise_panel.png` is not a figure from this protocol.
+
 ## References
 
 1. scikit-learn developers. Section 1.16, Probability calibration. scikit-learn 1.9.1 User Guide. https://scikit-learn.org/stable/modules/calibration.html (page fetched 5 November 2026).
@@ -234,7 +259,9 @@ Commands, seeds, and the interpreter that wrote the CSVs are in `REPRODUCIBILITY
 3. Phopase K. Calibration and threshold selection of machine learning classifiers for breast tumour diagnosis: a decision-support study for AI-driven clinical screening. Research Square preprint. Posted 27 October 2026. doi:10.21203/rs.3.rs-11491081/v1. Different protocol; not peer reviewed; not a source of the numbers in this file.
 4. Platt JC. Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods. 1999. Cited from the scikit-learn 1.9.1 user guide, reference [4] of section 1.16. Not re-read in full for this note.
 5. Niculescu-Mizil A, Caruana R. Predicting good probabilities with supervised learning. ICML 2005. Cited from the same user-guide section, reference [3]. Not re-read in full for this note.
-6. Murphy AH. A new vector partition of the probability score. *Journal of Applied Meteorology and Climatology*. 1973;12(4):595–600. Cited from the same user-guide section, reference [1], for the Brier-score decomposition. Not re-read in full for this note.
+6. Murphy AH. A new vector partition of the probability score. *Journal of Applied Meteorology*. 1973;12(4):595–600. Cited from the same user-guide section, reference [1], for the Brier-score decomposition. Not re-read in full for this note. The 1973 journal title is used. The later series name, *Journal of Applied Meteorology and Climatology*, is not the title on the 1973 issue.
 7. Manokhin V, Grønhaug D. When post-hoc calibration hurts: Platt scaling and isotonic regression on modern tabular models. *Proceedings of Machine Learning Research*. 2026;329:378–381. COPA 2026. https://proceedings.mlr.press/v329/manokhin26a.html. The four-page proceedings version. The i.i.d. restriction is quoted from the longer preprint below, not from this abstract.
 8. Manokhin V, Grønhaug D. Classifier calibration at scale: an empirical study of model-agnostic post-hoc methods. arXiv:2601.19944. Submitted 19 January 2026. HTML fetched 5 November 2026. States that distributional shift was omitted.
 9. Ovadia Y, Fertig E, Ren J, Nado Z, Sculley D, Nowozin S, Dillon JV, Lakshminarayanan B, Snoek J. Can you trust your model's uncertainty? Evaluating predictive uncertainty under dataset shift. NeurIPS 2019. arXiv:1906.02530 HTML fetched 5 November 2026. Deep networks and temperature scaling, not the protocol in Section 7.
+10. Virdee GS. Condition-stratified robustness analysis of post-hoc calibration methods for probabilistic classifiers. arXiv:2607.11542. HTML fetched 5 November 2026. Temperature scaling versus isotonic regression across four conditions of one corpus. The page does not identify those conditions with isotropic feature noise, and it states that no external transport is claimed. No number from it is used below.
+11. Demographic calibration gaps in breast cancer risk prediction: introducing the Demographic Calibration Gap Score. medRxiv preprint, doi:10.64898/2026.06.17.26355900. Not peer reviewed. Only the abstract was read. It studies subgroup calibration on WDBC and MIMIC-IV. It is not a source for the noise results, and the author list is not copied here because the full text was not used.

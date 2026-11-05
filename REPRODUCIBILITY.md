@@ -18,7 +18,7 @@ python -m wdbc_calib figures
 python -m wdbc_calib.write_claims
 ```
 
-The same commands are `make test`, `make recalibrate`, `make compare`, `make more-splits`, `make corruptions`, `make thresholds`, and `make figures`.
+The same commands are `make test`, `make recalibrate`, `make compare`, `make more-splits`, `make corruptions`, `make thresholds`, `make cross-dataset`, `make associate`, and `make figures`. `make associate` only reads saved CSVs. `make figures` does not draw the three association plots; `associate` does.
 
 Seeds, split counts, and draw counts are in `configs/`. Each output directory gets `manifest.json` (library versions and the config), `RUN_LOG.txt`, and `split_indices.csv` where splits are used. Noise seeds are `numpy.random.SeedSequence([master, stream, split, level, draw])` reduced to one `uint32`, then `Generator.standard_normal`. The model name is not part of the seed, so every model and calibration arm in a draw sees the same matrix.
 
